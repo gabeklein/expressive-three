@@ -6,7 +6,7 @@ import {
   PerspectiveCamera,
   Scene,
   Viewport
-} from '../../packages/three/src/index';
+} from '../../src/index';
 
 const lines: string[] = [];
 
