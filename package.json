@@ -1,0 +1,39 @@
+{
+  "name": "@expressive/three",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Three.js scene graph built from Expressive MVC State classes.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit --incremental",
+    "coverage": "vitest run --coverage",
+    "test": "bun run typecheck && bun run coverage",
+    "probe": "bun .github/scripts/three-probe.ts"
+  },
+  "dependencies": {
+    "@expressive/mvc": "^0.88.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.160.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "@types/three": "^0.185.0",
+    "@vitest/coverage-istanbul": "^4.1.10",
+    "three": "^0.185.0",
+    "tsdown": "^0.20.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}
