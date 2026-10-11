@@ -28,4 +28,4 @@ jobs:
 
       - name: Pack validation
         continue-on-error: true
-        run: cd packages/three && npm publish --dry-run
+        run: npm publish --dry-run
