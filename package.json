@@ -1,6 +1,6 @@
 {
   "name": "@expressive/three",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Three.js scene graph built from Expressive MVC State classes.",
   "license": "MIT",
