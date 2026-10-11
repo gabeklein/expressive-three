@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Mesh, PerspectiveCamera, Scene, Viewport } from '../../packages/three/src/index';
+import { Mesh, PerspectiveCamera, Scene, Viewport } from '../../src/index';
 
 const lines: string[] = [];
 
