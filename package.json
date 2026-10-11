@@ -1,26 +1,53 @@
 {
-  "name": "expressive-three",
-  "license": "MIT",
+  "name": "@expressive/three",
+  "version": "0.0.0",
   "private": true,
+  "description": "Three.js scene graph built from Expressive MVC State classes.",
+  "license": "MIT",
   "type": "module",
-  "workspaces": [
-    "packages/*"
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "Gabe Klein",
+    "email": "gabe@expressive.dev",
+    "url": "https://github.com/gabeklein"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
   ],
   "scripts": {
-    "build": "bun run --filter='./packages/*' build",
-    "typecheck": "bun run --filter='./packages/*' typecheck",
-    "coverage": "bun run --filter='./packages/*' coverage",
-    "test": "bun run --filter='./packages/*' test",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit --incremental",
+    "coverage": "vitest run --coverage",
+    "test": "bun run typecheck && bun run coverage",
     "probe": "bun .github/scripts/three-probe.ts",
     "changeset": "changeset",
     "ci:version": "changeset version && bun install",
-    "ci:publish": "bun run --filter='./packages/*' build && changeset publish"
+    "ci:publish": "bun run build && changeset publish"
+  },
+  "dependencies": {
+    "@expressive/mvc": "^0.88.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.160.0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.27.12",
     "@types/node": "^25.2.0",
+    "@types/three": "^0.185.0",
     "@vitest/coverage-istanbul": "^4.1.10",
+    "three": "^0.185.0",
+    "tsdown": "^0.20.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   },
