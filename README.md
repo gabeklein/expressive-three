@@ -1,7 +1,7 @@
 # @expressive/three
 
 A three.js scene graph built from Expressive MVC `State` classes. Unreleased -
-scope, decisions and status live in [FEATURE.md](../../FEATURE.md).
+scope, decisions and status live in [FEATURE.md](FEATURE.md).
 
 ```ts
 class Spinner extends Mesh {
