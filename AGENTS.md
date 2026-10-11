@@ -6,22 +6,20 @@ Contributor guide for AI agents working in this repository.
 
 `@expressive/three` - a three.js scene graph built from [Expressive MVC](https://github.com/gabeklein/expressive-mvc) `State` classes. Unreleased. [FEATURE.md](FEATURE.md) holds agreed scope and shape - update it in the PR that changes either. Expressive's own contract and conventions: [skills/SKILL.md](https://github.com/gabeklein/expressive-mvc/blob/main/skills/SKILL.md) - read the relevant parts before designing, and inspect source and tests before changing behavior.
 
-Monorepo: bun workspaces + changesets, the same layout as [expressive-orm](https://github.com/gabeklein/expressive-orm). Install, scripts and builds run under bun; tests run on vitest.
+A single package at the root, with changesets and release CI as in [expressive-orm](https://github.com/gabeklein/expressive-orm). Install, scripts and builds run under bun; tests run on vitest.
 
 ## Structure
 
 ```
-packages/three    - @expressive/three
+src/              - @expressive/three
 .github/scripts   - three-probe: drawing verified in Chrome
 ```
-
-The website, examples and skills join as workspaces beside the package when they start.
 
 ## Commands
 
 ```bash
 bun install
-bun run test        # typecheck + vitest with 100% coverage gates, every package
+bun run test        # typecheck + vitest with 100% coverage gates
 bun run build       # tsdown to dist/
 bun run probe       # draw in Chrome and read back pixels (set CHROME)
 bun run changeset   # record a user-facing change
@@ -48,7 +46,7 @@ Tests live only in `*.test.ts` files beside the source they cover (`viewport.ts`
 - **Key lists are the contract** - what is reactive - and stay explicit. Transforms and colors follow expressive's in-place rule: assign to dispatch, mutate in place silently.
 - **Core changes go upstream.** Build only on published `@expressive/mvc` API - no internal imports. A missing seam is a PR to expressive-mvc, not a workaround here.
 - Merged code carries essentially no comments. Keep one only where the code would otherwise be misread.
-- **Always ask before adding public surface** - anything reachable from `packages/three/src/index.ts`. Prefer reusing or reshaping existing surface; propose and wait for a decision.
+- **Always ask before adding public surface** - anything reachable from `src/index.ts`. Prefer reusing or reshaping existing surface; propose and wait for a decision.
 - Write docs for token economy: cut meta-framing, intensifiers and redundant clauses; prefer a dash over a connective phrase.
 
 ## Change flow
