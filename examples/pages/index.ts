@@ -1,1 +1,1 @@
-export default ['essentials'];
+export default ['essentials', 'look'];
