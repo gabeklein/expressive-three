@@ -12,6 +12,7 @@ A single package at the root, with changesets and release CI as in [expressive-o
 
 ```
 src/              - @expressive/three
+examples/         - playground: one page per example, each with a Playwright spec (see examples/AGENTS.md)
 .github/scripts   - three-probe: drawing verified in Chrome
 ```
 
@@ -22,6 +23,8 @@ bun install
 bun run test        # typecheck + vitest with 100% coverage gates
 bun run build       # tsdown to dist/
 bun run probe       # draw in Chrome and read back pixels (set CHROME)
+bun run examples    # playground dev server
+bun run e2e         # every example's spec in Chromium
 bun run changeset   # record a user-facing change
 ```
 
