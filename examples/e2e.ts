@@ -30,12 +30,23 @@ export async function pixel(target: Locator, x = 0.5, y = 0.5): Promise<Pixel> {
   return [png.data[at], png.data[at + 1], png.data[at + 2]];
 }
 
+/** How many pixels of `target` match `test` - for something drawn somewhere, not at a known point. */
+export async function area(target: Locator, test: (pixel: Pixel) => boolean) {
+  const { data } = PNG.sync.read(await target.screenshot());
+  let count = 0;
+
+  for (let at = 0; at < data.length; at += 4) if (test([data[at], data[at + 1], data[at + 2]])) count++;
+
+  return count;
+}
+
 /** Wait until the colour at a point matches `test`. */
 export async function drawn(target: Locator, test: (pixel: Pixel) => boolean, x?: number, y?: number) {
   await expect.poll(async () => test(await pixel(target, x, y)), { timeout: 10_000 }).toBe(true);
 }
 
 export const red = ([r, g, b]: Pixel) => r > 150 && g < 110 && b < 110;
+export const green = ([r, g, b]: Pixel) => g > 150 && r < 110 && b < 110;
 export const dark = ([r, g, b]: Pixel) => r < 50 && g < 50 && b < 50;
 
 export { expect };
