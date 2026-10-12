@@ -1,1 +1,1 @@
-export default ['lights'];
+export default ['lights', 'cameras'];
