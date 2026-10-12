@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-const port = 5190;
+const port = Number(process.env.PORT) || 5190;
 
 export default defineConfig({
   testMatch: ['pages/**/*.spec.ts', 'coverage.spec.ts'],
