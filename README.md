@@ -69,7 +69,19 @@ arena.spinner.boost(1);
   needs no marking.
 - **`Viewport`** - the one host-facing root. Owns the renderer and a `Frame`; a
   subclass supplies `scene` and `camera`. Draws every frame while attached to a
-  canvas or WebGL context, sizing renderer and camera to it. `draw()` is
-  protected - override to wrap it.
+  canvas or WebGL context, sizing renderer and camera to it - including a camera
+  assigned later. `draw()` is protected - override to wrap it; `_renderer` is a
+  `WebGLRenderer` unless `createRenderer()` returns another (`Viewport<R>`).
 - **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`
-  drives one from `requestAnimationFrame`.
+  drives one from `requestAnimationFrame`, capping a step at 0.1s.
+
+## Notes
+
+- **Swappable resources** - a default narrows a member's type: `geometry = BOX` makes it
+  `BoxGeometry`. Write `geometry: BufferGeometry = BOX` to swap shapes later.
+- **Switching cameras** - give each camera its own field and point `camera` at one. Replacing
+  the only reference destroys the old camera; separate fields keep each alive with its settings.
+- **Light toggles** - prefer `intensity = 0` to `visible = false` for quick toggles: changing the
+  number of visible lights makes three recompile every material's shader.
+- **Orthographic extent** - three's default is ±1 unit vertically; set `top` and `bottom` for the
+  scene's scale. The Viewport fits the width.

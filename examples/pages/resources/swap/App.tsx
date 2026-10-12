@@ -7,8 +7,7 @@ import {
   MeshBasicMaterial,
   SphereGeometry,
   TorusGeometry,
-  Vector3,
-  type WebGLRenderer
+  Vector3
 } from 'three';
 
 const SHAPES = {
@@ -81,7 +80,7 @@ class Workshop extends Viewport {
 
   protected draw() {
     super.draw();
-    this.geometries = (this._renderer as WebGLRenderer).info.memory.geometries;
+    this.geometries = this._renderer!.info.memory.geometries;
   }
 }
 

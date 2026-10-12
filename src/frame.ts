@@ -30,6 +30,9 @@ class Frame extends State {
 }
 
 /** Drive `frame` from a scheduler, e.g. `requestAnimationFrame`. Returns a function to stop. */
+/** Longest step `loop()` passes - a tab returning from the background does not jump the clock. */
+const MAX_DELTA = 0.1;
+
 function loop(frame: Pick<Frame, 'tick'>, schedule: Frame.Schedule) {
   let last: number | undefined;
   let active = true;
@@ -37,7 +40,7 @@ function loop(frame: Pick<Frame, 'tick'>, schedule: Frame.Schedule) {
   function step(time: number) {
     if (!active) return;
 
-    frame.tick(last === undefined ? 0 : (time - last) / 1000);
+    frame.tick(last === undefined ? 0 : Math.min((time - last) / 1000, MAX_DELTA));
     last = time;
     schedule(step);
   }

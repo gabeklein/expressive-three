@@ -28,8 +28,8 @@ export default () => (
     </p>
     <Projection />
     <small>
-      Assigning <code>camera</code> switches the drawing on the next frame, but a Viewport fits its camera
-      to the canvas only on attach and resize - <code>use()</code> sizes the incoming camera first.
+      Assigning <code>camera</code> switches the drawing on the next frame, and the Viewport fits the
+      incoming camera to the canvas. Each camera lives in its own field, so switching back keeps its settings.
     </small>
   </div>
 );
@@ -89,18 +89,6 @@ class Bench extends Viewport {
   rider = new Rider({ parent: this.scene.orbit });
 
   camera: Front | Flat | Rider = this.front;
-
-  use(camera: Front | Flat | Rider) {
-    const { clientWidth, clientHeight } = this.canvas.current;
-    const aspect = clientWidth / clientHeight;
-
-    if (camera instanceof OrthographicCamera) {
-      const half = ((camera.top - camera.bottom) / 2) * aspect;
-      camera.set({ left: -half, right: half });
-    } else camera.aspect = aspect;
-
-    this.camera = camera;
-  }
 }
 
 class Projection extends Component {
@@ -122,7 +110,7 @@ class Projection extends Component {
             <button
               key={label}
               aria-pressed={camera.is === option.is}
-              onClick={() => this.bench.use(option)}>
+              onClick={() => (this.bench.camera = option)}>
               {label}
             </button>
           ))}

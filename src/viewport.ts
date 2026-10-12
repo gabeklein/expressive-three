@@ -17,10 +17,13 @@ declare namespace Viewport {
   }
 }
 
-const DETACH = new WeakMap<Viewport, () => void>();
+const DETACH = new WeakMap<object, () => void>();
 
-/** The host-facing root - draws `scene` through `camera` every frame once given a surface. */
-class Viewport extends State {
+/**
+ * The host-facing root - draws `scene` through `camera` every frame once given a surface.
+ * `R` types the renderer a `draw` override sees; `WebGLRenderer` unless `createRenderer` makes another.
+ */
+class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends State {
   /** Clock for everything under this viewport - nodes read it with `get(Frame)`. */
   frame = new Frame();
 
@@ -31,7 +34,7 @@ class Viewport extends State {
   canvas = ref<HTMLCanvasElement>((element) => this.attach(element));
 
   /** The renderer while attached - for a `draw` override. */
-  protected _renderer?: Viewport.Renderer;
+  protected _renderer?: R;
 
   /** Draw into `surface` until the returned function is called. */
   attach(surface: Viewport.Surface) {
@@ -41,12 +44,19 @@ class Viewport extends State {
     DETACH.get(this)?.();
 
     const renderer = this.createRenderer(surface);
+    let size: [number, number];
+
     const resize = (width: number, height: number) => {
+      size = [width, height];
       renderer.setPixelRatio(globalThis.devicePixelRatio || 1);
       renderer.setSize(width, height, false);
 
       fit(this.camera, width, height);
     };
+
+    const refit = this.set((key) => {
+      if (key == 'camera') fit(this.camera, ...size);
+    });
 
     let observer: ResizeObserver | undefined;
 
@@ -75,6 +85,7 @@ class Viewport extends State {
       if (DETACH.get(this) !== detach) return;
 
       DETACH.delete(this);
+      refit();
       stop();
       observer?.disconnect();
       renderer.dispose();
@@ -92,10 +103,10 @@ class Viewport extends State {
     this._renderer!.render(objectOf(this.scene), objectOf(this.camera) as THREE.Camera);
   }
 
-  protected createRenderer(surface: Viewport.Surface): Viewport.Renderer {
-    return 'getContext' in surface
+  protected createRenderer(surface: Viewport.Surface): R {
+    return ('getContext' in surface
       ? new THREE.WebGLRenderer({ canvas: surface, antialias: true })
-      : new THREE.WebGLRenderer({ canvas: surface.canvas as HTMLCanvasElement, context: surface });
+      : new THREE.WebGLRenderer({ canvas: surface.canvas as HTMLCanvasElement, context: surface })) as unknown as R;
   }
 
   protected schedule(step: (time: number) => void) {

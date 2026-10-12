@@ -39,7 +39,7 @@ function canvas(width = 800, height = 400) {
   return { getContext() {}, clientWidth: width, clientHeight: height } as unknown as HTMLCanvasElement;
 }
 
-class Test extends Viewport {
+class Test extends Viewport<Viewport.Renderer> {
   scene = new Scene();
   camera = new PerspectiveCamera();
 
@@ -85,9 +85,9 @@ describe('Viewport', () => {
     render.mockImplementation(() => order.push('render'));
     game.attach(canvas());
     game.step(1000);
-    game.step(1500);
+    game.step(1050);
 
-    expect(order).toEqual(['tick 0', 'render', 'tick 0.5', 'render']);
+    expect(order).toEqual(['tick 0', 'render', 'tick 0.05', 'render']);
     expect(render).toHaveBeenCalledWith(objectOf(game.scene), objectOf(game.camera));
   });
 
@@ -140,7 +140,7 @@ describe('Viewport', () => {
   });
 
   it('will fit an orthographic camera to the surface', () => {
-    class Flat extends Viewport {
+    class Flat extends Viewport<Viewport.Renderer> {
       scene = new Scene();
       camera = new OrthographicCamera();
 
@@ -156,6 +156,22 @@ describe('Viewport', () => {
     game.attach(canvas(800, 400));
 
     expect(game.camera.right).toBe(2);
+  });
+
+  it('will fit a camera assigned while attached, and stop once detached', () => {
+    const game = Test.new();
+    const detach = game.attach(canvas(800, 400));
+    const next = new PerspectiveCamera();
+
+    game.camera = next;
+    expect(next.aspect).toBe(2);
+
+    detach();
+
+    const later = new PerspectiveCamera();
+
+    game.camera = later;
+    expect(later.aspect).toBe(1);
   });
 
   it('will not set aspect on a camera without one', () => {

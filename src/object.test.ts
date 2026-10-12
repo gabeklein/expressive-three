@@ -749,3 +749,17 @@ describe('disposal', () => {
     expect(geometry.dispose).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('Scene', () => {
+  it('will route background and fog to the three.js scene', () => {
+    class Room extends Scene {
+      background = new THREE.Color('red');
+      fog = new THREE.Fog(0x000000, 1, 10);
+    }
+
+    const room = objectOf(Room.new()) as THREE.Scene;
+
+    expect((room.background as THREE.Color).getHexString()).toBe('ff0000');
+    expect(room.fog).toBeInstanceOf(THREE.Fog);
+  });
+});

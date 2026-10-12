@@ -21,7 +21,7 @@ A three.js scene graph built as an addressable `State` tree. Nodes are classes, 
 
 ## Status
 
-Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geometry`, `material`, and live-vector transforms; `lookAt()`; placement (`parent`, `children`) defaulting to ownership; lifecycle; `Frame`, `loop()`; `Viewport`, perspective and orthographic cameras, lights; guarded `_object`. 100% coverage against real `THREE.Scene` graphs; drawing verified in Chrome by `three-probe.ts`.
+Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geometry`, `material`, and live-vector transforms; `lookAt()`; placement (`parent`, `children`) defaulting to ownership; lifecycle; `Frame`, `loop()` (step capped at 0.1s); `Viewport<R>` refitting any assigned camera, perspective and orthographic cameras, lights, `Scene` `background`/`fog`/`environment`; guarded `_object`. 100% coverage against real `THREE.Scene` graphs; drawing verified in Chrome by `three-probe.ts`.
 
 ## MVP
 
@@ -43,6 +43,10 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - A subclass computed on a member throws today; it could be synced through an effect instead.
 
 ## Bullpen
+
+- `children` typed per container - narrowing it in a subclass (`declare readonly children: readonly Mob[]`) breaks assignability to `Object3D` through `State.Assign`, so a pool controller casts today.
+- Warning when a subclass field shares a name with a three.js property it does not reach (`power` on `PointLight`) - considered and set aside: three objects carry common names (`name`, `type`, `id`), so it would fire on legitimate fields.
+- A cheap "is this node drawn" check for frame handlers on unplaced nodes.
 
 - `node()` public, as r3f's `extend` - once a real case needs reactive members on a class we do not ship, and the internal form has settled.
 
