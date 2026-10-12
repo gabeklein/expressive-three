@@ -93,7 +93,7 @@ function node<T extends THREE.Object3D, K extends keyof T & string = never, B ex
 }
 
 class Group extends node(THREE.Group) {}
-class Scene extends node(THREE.Scene) {}
+class Scene extends node(THREE.Scene, ['background', 'fog', 'environment']) {}
 class Mesh extends node(THREE.Mesh, ['geometry', 'material']) {}
 
 type Members = Record<string, unknown>;
