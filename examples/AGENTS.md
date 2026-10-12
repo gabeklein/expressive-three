@@ -35,3 +35,5 @@ Each page has a Playwright spec beside it: `pages/<group>/<page>/App.spec.ts`. `
 - `open('<group>/<page>')` loads the page; any `pageerror` or `console.error` fails the test.
 - Drive the page's own story, the one its copy states: click its controls, then assert what is drawn and what is shown. Assert colours with tolerant predicates - SwiftShader antialiases edges, so sample away from them.
 - WebGL runs on SwiftShader in headless Chromium; frames arrive through `requestAnimationFrame`. Poll with `drawn` rather than asserting a single frame.
+- A spec asserting anything that accumulates over time (spawn counts, elapsed readouts) installs and pauses the clock before `open()` - `page.clock.install({ time: 0 })`, `pauseAt(1000)`, then `runFor(ms)` - so each frame steps a fixed interval. A running clock stalls during screenshots and catches up in bursts.
+- `area(locator, test)` counts matching pixels across the canvas, for moving targets with no fixed spot to sample.
