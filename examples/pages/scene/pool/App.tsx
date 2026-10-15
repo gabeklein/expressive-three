@@ -8,7 +8,7 @@ export default () => (
   <div className="container">
     <h1>Pool</h1>
     <p>
-      <code>MobControl</code> is a plain <code>Model</code>, not a node. It owns a <code>has()</code> pool of{' '}
+      <code>Mobs</code> is a plain <code>Model</code>, not a node. It owns a <code>has()</code> pool of{' '}
       <code>Mob</code> meshes - ownership is lifetime, and a mob lives as long as the pool holds it.{' '}
       <code>parent</code> is where it draws: Spawn takes an idle mob (or adds one), assigns its{' '}
       <code>position</code> and places it with <code>mob.parent = this.arena</code>. Despawn sets{' '}
@@ -17,7 +17,7 @@ export default () => (
     </p>
     <Spawning />
     <small>
-      <code>MobControl</code> sits beside the scene, not inside it, so an unplaced mob has no owning node to fall
+      <code>Mobs</code> sits beside the scene, not inside it, so an unplaced mob has no owning node to fall
       back to and draws nowhere. Drawn is <code>arena.children.length</code>, which updates as mobs are
       placed and unplaced.
     </small>
@@ -47,7 +47,7 @@ class Eye extends OrthographicCamera {
   position = new Vector3(0, 0, 10);
 }
 
-class MobControl extends Model {
+class Mobs extends Model {
   arena = get(Arena);
   pool = has(Mob);
   idle = has<Mob>();
@@ -70,7 +70,7 @@ class MobControl extends Model {
 class Game extends Viewport {
   scene = new Arena();
   camera = new Eye();
-  mobs = new MobControl();
+  mobs = new Mobs();
 }
 
 class Spawning extends Component {
