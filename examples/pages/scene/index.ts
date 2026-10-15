@@ -1,1 +1,1 @@
-export default ['pool', 'controllers'];
+export default ['pool', 'controls'];

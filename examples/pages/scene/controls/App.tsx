@@ -1,5 +1,5 @@
 import { Component } from '@expressive/mvc';
-import { Frame, get, has, Mesh, PerspectiveCamera, Scene, State, Viewport } from '@expressive/three';
+import { Frame, get, has, Mesh, PerspectiveCamera, Scene, Model, Viewport } from '@expressive/three';
 import { Color, CylinderGeometry, Euler, MeshBasicMaterial, PlaneGeometry, SphereGeometry, Vector3 } from 'three';
 
 const WIDE = 7;
@@ -11,10 +11,10 @@ const BODY = new SphereGeometry(0.35, 24, 16);
 
 export default () => (
   <div className="container">
-    <h1>Controllers</h1>
+    <h1>Controls</h1>
     <p>
-      Behaviour does not have to be a 3D object. <code>Spawner</code> and <code>Radar</code> are plain{' '}
-      <code>State</code> classes sitting beside the scene on the <code>Viewport</code>. The spawner reaches
+      Behaviour does not have to be a 3D object. <code>SpawnControl</code> and <code>RadarControl</code> are plain{' '}
+      <code>Model</code> classes sitting beside the scene on the <code>Viewport</code>. The spawner reaches
       the clock and the arena with <code>get()</code>, counts frame time in <code>frame.each</code>, and adds
       mobs to the arena's <code>has()</code> pool until it is full. <code>rate</code> and{' '}
       <code>paused</code> are ordinary state - the controls write them, the next frame reads them.
@@ -28,7 +28,7 @@ export default () => (
     </p>
     <Controlled />
     <small>
-      The clock, the scene and both controllers are one tree reached with <code>get()</code> - no store
+      The clock, the scene and both controls are one tree reached with <code>get()</code> - no store
       library, no refs.
     </small>
   </div>
@@ -80,7 +80,7 @@ class Arena extends Scene {
   mobs = has(Mob);
 }
 
-class Spawner extends State {
+class SpawnControl extends Model {
   arena = get(Arena);
   frame = get(Frame);
 
@@ -106,7 +106,7 @@ class Spawner extends State {
   }
 }
 
-class Radar extends State {
+class RadarControl extends Model {
   arena = get(Arena);
 
   range: number | undefined = undefined;
@@ -153,8 +153,8 @@ class Game extends Viewport {
   scene = new Arena();
   camera = new Eye();
 
-  spawner = new Spawner();
-  radar = new Radar();
+  spawner = new SpawnControl();
+  radar = new RadarControl();
 }
 
 class Controlled extends Component {

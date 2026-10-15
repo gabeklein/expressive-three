@@ -3,7 +3,7 @@ import { area, expect, green, red, test } from '../../../e2e';
 test('will spawn until paused, and ping the nearest mob', async ({ page, open }) => {
   await page.clock.install({ time: 0 });
   await page.clock.pauseAt(1000);
-  await open('scene/controllers');
+  await open('scene/controls');
 
   const stage = page.locator('canvas.stage');
   const spawned = async () => parseInt((await page.locator('.count').textContent())!);

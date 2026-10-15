@@ -1,4 +1,4 @@
-import { State } from '@expressive/mvc';
+import { Model } from '@expressive/mvc';
 
 declare namespace Frame {
   type Handler = (delta: number, elapsed: number) => void;
@@ -6,7 +6,7 @@ declare namespace Frame {
 }
 
 /** Animation clock - provide one, read it with `get(Frame)`. */
-class Frame extends State {
+class Frame extends Model {
   static readonly global = false;
 
   protected _handlers = new Set<Frame.Handler>();

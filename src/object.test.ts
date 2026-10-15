@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 
-import { get, has, set, State } from '@expressive/mvc';
+import { get, has, set, Model } from '@expressive/mvc';
 
 import { Frame } from './frame';
 import { Group, Mesh, Object3D, objectOf, Scene, verify } from './object';
@@ -232,7 +232,7 @@ describe('hierarchy', () => {
   });
 
   it('will attach through owners which are not scene objects', () => {
-    class Level extends State {
+    class Level extends Model {
       rock = new Mesh();
     }
 
@@ -287,7 +287,7 @@ describe('hierarchy', () => {
   });
 
   it('will resolve state from context rather than props', async () => {
-    class Theme extends State {
+    class Theme extends Model {
       color = 'red';
     }
 
@@ -331,7 +331,7 @@ describe('placement', () => {
     expect(objectOf(bee).parent).toBe(objectOf(hive));
     expect(hive.children).toEqual([bee]);
     expect(world.children).toEqual([hive]);
-    expect(bee.get(State)).toBe(world);
+    expect(bee.get(Model)).toBe(world);
     await expect(bee).toHaveUpdated('parent');
   });
 
@@ -395,7 +395,7 @@ describe('placement', () => {
     const bullet = world.gun.bullets.add();
 
     expect(objectOf(bullet).parent).toBe(objectOf(world));
-    expect(bullet.get(State)).toBe(world.gun);
+    expect(bullet.get(Model)).toBe(world.gun);
     expect(world.gun.children).toEqual([]);
   });
 
@@ -471,7 +471,7 @@ describe('placement', () => {
 
     class Arena extends Scene {}
 
-    class Mobs extends State {
+    class Mobs extends Model {
       arena = get(Arena);
       all = has(Mob);
       idle: Mob[] = [];
@@ -488,7 +488,7 @@ describe('placement', () => {
       }
     }
 
-    class Game extends State {
+    class Game extends Model {
       arena = new Arena();
       mobs = new Mobs();
     }

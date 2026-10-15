@@ -1,6 +1,6 @@
 # @expressive/three
 
-A three.js scene graph built from Expressive MVC `State` classes. Unreleased -
+A three.js scene graph built from Expressive MVC `Model` classes. Unreleased -
 scope, decisions and status live in [FEATURE.md](FEATURE.md).
 
 ```ts
@@ -83,5 +83,7 @@ arena.spinner.boost(1);
   the only reference destroys the old camera; separate fields keep each alive with its settings.
 - **Light toggles** - prefer `intensity = 0` to `visible = false` for quick toggles: changing the
   number of visible lights makes three recompile every material's shader.
+- **Typed containers** - a container narrows what it holds with
+  `declare readonly children: readonly Mob[]`, so a control reading it back needs no cast.
 - **Orthographic extent** - three's default is ±1 unit vertically; set `top` and `bottom` for the
   scene's scale. The Viewport fits the width.
