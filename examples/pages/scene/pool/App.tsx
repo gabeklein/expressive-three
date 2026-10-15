@@ -1,5 +1,5 @@
 import { Component } from '@expressive/mvc';
-import { Frame, get, has, Mesh, OrthographicCamera, Scene, State, Viewport } from '@expressive/three';
+import { Frame, get, has, Mesh, OrthographicCamera, Scene, Model, Viewport } from '@expressive/three';
 import { BoxGeometry, Color, MeshBasicMaterial, Vector3 } from 'three';
 
 const SLOTS = 6;
@@ -8,7 +8,7 @@ export default () => (
   <div className="container">
     <h1>Pool</h1>
     <p>
-      <code>Mobs</code> is a plain <code>State</code>, not a node. It owns a <code>has()</code> pool of{' '}
+      <code>Mobs</code> is a plain <code>Model</code>, not a node. It owns a <code>has()</code> pool of{' '}
       <code>Mob</code> meshes - ownership is lifetime, and a mob lives as long as the pool holds it.{' '}
       <code>parent</code> is where it draws: Spawn takes an idle mob (or adds one), assigns its{' '}
       <code>position</code> and places it with <code>mob.parent = this.arena</code>. Despawn sets{' '}
@@ -37,7 +37,9 @@ class Mob extends Mesh {
   }
 }
 
-class Arena extends Scene {}
+class Arena extends Scene {
+  declare readonly children: readonly Mob[];
+}
 
 class Eye extends OrthographicCamera {
   top = 3;
@@ -45,7 +47,7 @@ class Eye extends OrthographicCamera {
   position = new Vector3(0, 0, 10);
 }
 
-class Mobs extends State {
+class Mobs extends Model {
   arena = get(Arena);
   pool = has(Mob);
   idle = has<Mob>();
@@ -58,7 +60,7 @@ class Mobs extends State {
   }
 
   despawn() {
-    const mob = this.arena.children.at(-1) as Mob;
+    const mob = this.arena.children.at(-1)!;
 
     mob.parent = null;
     this.idle.push(mob);

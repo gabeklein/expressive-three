@@ -1,4 +1,4 @@
-import { ref, State } from '@expressive/mvc';
+import { ref, Model } from '@expressive/mvc';
 import * as THREE from 'three';
 
 import { fit } from './camera';
@@ -23,7 +23,7 @@ const DETACH = new WeakMap<object, () => void>();
  * The host-facing root - draws `scene` through `camera` every frame once given a surface.
  * `R` types the renderer a `draw` override sees; `WebGLRenderer` unless `createRenderer` makes another.
  */
-class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends State {
+class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model {
   /** Clock for everything under this viewport - nodes read it with `get(Frame)`. */
   frame = new Frame();
 

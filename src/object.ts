@@ -1,4 +1,4 @@
-import { State } from '@expressive/mvc';
+import { Model } from '@expressive/mvc';
 import * as THREE from 'three';
 
 const OBJECT = new WeakMap<object, THREE.Object3D>();
@@ -9,7 +9,7 @@ const WARNED = new WeakSet<Object3D>();
 const USES = new WeakMap<object, number>();
 
 /** A scene graph node, representing the three.js object `create` returns. */
-abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends State {
+abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends Model {
   /**
    * The three.js object this node represents. Read values and mutate them per frame through members;
    * structure (`add`, `remove`, `parent`) and lifecycle (`dispose`) go through `parent` and destroying the node.
@@ -36,7 +36,7 @@ abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends State
   /** Nodes currently drawn under this one. */
   declare readonly children: readonly Object3D[];
 
-  constructor(...args: State.Args) {
+  constructor(...args: Model.Args) {
     super(...args);
 
     const object = this.create();
@@ -89,7 +89,7 @@ function node<T extends THREE.Object3D, K extends keyof T & string = never, B ex
     });
 
   return Node as unknown as Pick<B, keyof B> &
-    (abstract new (...args: State.Args) => InstanceType<B> & Object3D<T> & Pick<T, K>);
+    (abstract new (...args: Model.Args) => InstanceType<B> & Object3D<T> & Pick<T, K>);
 }
 
 class Group extends node(THREE.Group) {}
@@ -124,7 +124,7 @@ function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.O
         place(object, key, own.value);
       }
 
-      (self as State).set(key, {
+      (self as Model).set(key, {
         get: () => object[key],
         set(value: unknown) {
           const previous = object[key];
@@ -190,7 +190,7 @@ function place(object: Members, key: string, value: unknown) {
   else object[key] = value;
 }
 
-function write(self: State, object: Members, key: string, value: unknown) {
+function write(self: Model, object: Members, key: string, value: unknown) {
   const v = vector(object, key);
 
   if (!v) {
@@ -214,8 +214,8 @@ function placed(self: Object3D) {
   return set;
 }
 
-function owner(self: State) {
-  for (let at = self.get(State, false); at; at = at.get(State, false))
+function owner(self: Model) {
+  for (let at = self.get(Model, false); at; at = at.get(Model, false))
     if (at instanceof Object3D) return at;
 }
 
@@ -232,7 +232,7 @@ function placement(self: Object3D) {
 
     delete (self as Partial<Object3D>).parent;
 
-    (self as State).set('parent', {
+    (self as Model).set('parent', {
       get: () => value,
       set(next: unknown) {
         if (next !== value) {
@@ -245,7 +245,7 @@ function placement(self: Object3D) {
     });
   }
 
-  (self as State).set('children', { get: () => [...placed(self)], set: false });
+  (self as Model).set('children', { get: () => [...placed(self)], set: false });
 }
 
 function mount(self: Object3D) {
