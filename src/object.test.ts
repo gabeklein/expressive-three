@@ -738,6 +738,27 @@ describe('disposal', () => {
     expect(blue.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it('will not dispose a resource it never counted', () => {
+    class Raw extends Mesh {
+      swap(geometry: THREE.BufferGeometry) {
+        this._object.geometry = geometry;
+      }
+    }
+
+    const shared = spied(new THREE.BoxGeometry());
+    const holder = Mesh.new({ geometry: shared });
+    const raw = Raw.new();
+
+    raw.swap(shared);
+    raw.geometry = new THREE.BoxGeometry();
+
+    expect(shared.dispose).not.toHaveBeenCalled();
+
+    holder.set(null);
+
+    expect(shared.dispose).toHaveBeenCalledTimes(1);
+  });
+
   it('will count a resource again after it was disposed', () => {
     const geometry = spied(new THREE.BoxGeometry());
 

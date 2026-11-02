@@ -110,6 +110,7 @@ function objectOf(self: object) {
 function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.Object3D) => void) {
   return (self: T) => {
     const object = objectOf(self) as unknown as Members;
+    const held: Members = {};
 
     for (const key of keys) {
       const own = Object.getOwnPropertyDescriptor(self, key);
@@ -127,13 +128,13 @@ function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.O
       (self as State).set(key, {
         get: () => object[key],
         set(value: unknown) {
-          const previous = object[key];
-
           try {
             return write(self, object, key, value);
           } finally {
+            const previous = held[key];
+
             if (object[key] !== previous) {
-              hold(object[key]);
+              hold((held[key] = object[key]));
               release(previous);
             }
 
@@ -142,13 +143,13 @@ function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.O
         }
       });
 
-      hold(object[key]);
+      hold((held[key] = object[key]));
     }
 
     changed?.(object as unknown as THREE.Object3D);
 
     return () => {
-      for (const key of keys) release(object[key]);
+      for (const key of keys) release(held[key]);
     };
   };
 }
@@ -321,8 +322,9 @@ function verify() {
 
 Object3D.on({
   setup(self) {
-    contract(['visible', 'position', 'rotation', 'scale'])(self);
     placement(self);
+
+    return contract(['visible', 'position', 'rotation', 'scale'])(self);
   },
   ready: mount
 });
