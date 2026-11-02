@@ -77,3 +77,14 @@ small { color: var(--muted); }
   background: var(--surface);
   font: 13px/1.5 ui-monospace, monospace;
 }
+
+.inspector {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s1) var(--s4);
+  margin: var(--s3) 0;
+  font: 13px/1.5 ui-monospace, monospace;
+}
+
+.inspector dt { color: var(--muted); }
+.inspector dd { margin: 0; }
