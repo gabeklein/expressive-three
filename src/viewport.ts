@@ -115,7 +115,7 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 }
 
 Viewport.on({
-  ready(self) {
+  setup(self) {
     return () => DETACH.get(self)?.();
   }
 });
