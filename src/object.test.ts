@@ -429,6 +429,7 @@ describe('placement', () => {
     world.hive = undefined;
 
     expect(objectOf(bee).parent).toBe(objectOf(world));
+    expect(bee.parent).toBeUndefined();
     expect(bee.get(null)).toBe(false);
   });
 
@@ -737,6 +738,27 @@ describe('disposal', () => {
     expect(blue.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it('will not dispose a resource it never counted', () => {
+    class Raw extends Mesh {
+      swap(geometry: THREE.BufferGeometry) {
+        this._object.geometry = geometry;
+      }
+    }
+
+    const shared = spied(new THREE.BoxGeometry());
+    const holder = Mesh.new({ geometry: shared });
+    const raw = Raw.new();
+
+    raw.swap(shared);
+    raw.geometry = new THREE.BoxGeometry();
+
+    expect(shared.dispose).not.toHaveBeenCalled();
+
+    holder.set(null);
+
+    expect(shared.dispose).toHaveBeenCalledTimes(1);
+  });
+
   it('will count a resource again after it was disposed', () => {
     const geometry = spied(new THREE.BoxGeometry());
 
@@ -761,5 +783,39 @@ describe('Scene', () => {
 
     expect((room.background as THREE.Color).getHexString()).toBe('ff0000');
     expect(room.fog).toBeInstanceOf(THREE.Fog);
+  });
+
+  it('will replace a color background with a texture', () => {
+    const room = Scene.new({ background: new THREE.Color('red') });
+    const texture = new THREE.Texture();
+
+    room.background = texture;
+
+    expect((objectOf(room) as THREE.Scene).background).toBe(texture);
+  });
+
+  it('will clear a color background', () => {
+    const room = Scene.new({ background: new THREE.Color('red') });
+
+    room.background = null;
+
+    expect((objectOf(room) as THREE.Scene).background).toBeNull();
+  });
+
+  it('will not mutate a shared background', () => {
+    const shared = new THREE.Color('red');
+    const room = Scene.new({ background: shared });
+
+    room.background = new THREE.Color('blue');
+
+    expect(shared.getHexString()).toBe('ff0000');
+    expect(((objectOf(room) as THREE.Scene).background as THREE.Color).getHexString()).toBe('0000ff');
+  });
+
+  it('will route environment to the three.js scene', () => {
+    const texture = new THREE.Texture();
+    const room = Scene.new({ environment: texture });
+
+    expect((objectOf(room) as THREE.Scene).environment).toBe(texture);
   });
 });
