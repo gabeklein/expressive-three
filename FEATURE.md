@@ -4,51 +4,69 @@ Agreed scope and shape - update this file in the PR that changes either.
 
 ## Goal
 
-A three.js scene graph built as an addressable `State` tree. Nodes are classes, behavior lives in their fields and methods, and values reach the three.js object through field writes - no render pass, no prop channel.
+A three.js scene graph built as an addressable `Model` tree. Nodes are classes, behavior lives in their fields and methods, and values reach the three.js object through field writes - no render pass, no prop channel. The Model tree's main value is the address space - scenes are found, referenced and composed by class; reactivity serves discrete state, and animation opts out.
 
 ## Agreed shape
 
-- **Nodes are `State`**, not `Component`. JSX is at most sugar for props and children - not designed around.
-- **Hierarchy is ownership.** A node attaches under the nearest owning `Object3D`, past owners which are not nodes. References (`get()`) and guests (already-active instances) do not attach.
+- **Nodes are `Model`s**, not `Component`s. JSX is at most sugar for props and children - not designed around.
+- **Placement defaults to ownership.** Ownership (`get(Model)`) is lifetime; placement is where a node draws. Unplaced, a node attaches under the nearest owning `Object3D`, past owners which are not nodes. References (`get()`) and guests (already-active instances) do not attach. `parent` places explicitly - a node, `null` for nowhere, or an instruction (`parent = get(World)`); it stays out of the store, so the node held there is not adopted. `children` is the read view, one parent at a time. Placement never touches lifetime - pools spawn by placing and despawn by unplacing; a destroyed parent returns its placed nodes to their owner. Only edges between our nodes are managed; three never writes back.
 - **Existence is the ownership lifecycle** - field assignment, pool add/delete, destroy. Gating is state, not conditional rendering.
+- **GPU resources are reference-counted.** Geometry and materials held by members (each entry of a material list) are counted across nodes - assignment holds, replacement and destroy release, the last release disposes. No markers: sharing is common (three's `clone()` shares, loaded models share) and an over-eager dispose only costs a re-upload on next use. `FinalizationRegistry` does not fit - GPU memory is invisible to the collector. Resources attached through `_object` are not counted.
 - **Scenes are addressable.** Compose with fields (`turret = new Turret()`) and pools (`enemies = has((e: Mob | Boss) => e)`) on the owning class. A separate manager class only when the population has state of its own (an aggro table). Order is not significant - three sorts draws; `renderOrder` is explicit.
-- **Primitives install a fixed member contract at `setup`** through `state.set(key, { get, set })`; the three.js object is the storage. At `setup` a subclass default is still a plain value, so it reaches the object. Primitives declare no instruction fields - a subclass initializer silently replaces those. Instructions are a user tool.
-- **Internals are protected** - `_object` (unmanaged; travels with the instance), `create()`.
-- **Per-frame work is imperative** - `Frame.each`, dispatching nothing. Reactive state describes what exists; the clock drives what it does.
-- **One host-facing root** owns canvas, renderer and camera; nothing else meets a host. Its frame hook is `draw()` - `render` is the host's content method on a rendered State.
+- **Primitives install a fixed member contract at `setup`** through `state.set(key, { get, set })`; the three.js object is the storage. Transforms (`position`, `rotation`, `scale`) read as the live three.js vector and follow expressive's in-place rule - assigning a vector copies it in and dispatches if changed, mutating in place is silent, `set('position')` announces. Assign to place, mutate to animate. Vectors only - no tuple form. A `THREE.Color` member (`color`, `groundColor`) follows the same rule. At `setup` a subclass default is still a plain value, so it reaches the object. Primitives declare no instruction fields - a subclass initializer silently replaces those. Instructions are a user tool.
+- **The catalogue is generated.** Each primitive is one line - `class Mesh extends node(THREE.Mesh, ['geometry', 'material']) {}` - members typed from three's own declarations, an optional base for shared members (`node(THREE.PointLight, ['distance', 'decay'], Light)`), projection updated for any object with `updateProjectionMatrix`. The key list is the contract - what is reactive - and stays explicit. `node()` is internal; `Object3D` subclassing (`create()` returning any three object) is the public escape hatch for classes we do not ship.
+- **Internals are protected** - `_object`, `create()`. `_object` is a getter over a module-private store; reaching it marks the node, and `draw()` checks marked nodes' structure - a node moved there instead of through `parent` warns once and goes back, unless it now sits under a foreign object (a loaded bone). Values in frame handlers go through members; structure and lifecycle never go through `_object`. The base is generic (`Object3D<T>`), so `_object` is typed per subclass.
+- **Per-frame work is imperative** - `Frame.each` mutating live vectors (`this.rotation.y += …`), dispatching nothing. A dispatch costs ~1.7µs per write against ~9ns in place, so continuous motion mutates. Reactive state describes what exists; the clock drives what it does.
+- **One host-facing root** - `Viewport` owns the renderer and a `Frame`; a subclass supplies `scene` and `camera`. It never renders anything itself: a host hands it a surface - `attach(canvas | gl)`, or `<canvas ref={viewport.canvas} />` - so the package carries no host code. A WebGL context attaches the same way; React Native's `GLView` is untested (see Bullpen). Its frame hook is `draw()` - `render` is the host's content method on a rendered instance. Drawing is continuous while attached.
 
 ## Status
 
-Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `position`, `rotation`, `scale`, `geometry`, `material`; `lookAt()`; ownership hierarchy and lifecycle; `Frame`, `loop()`. 100% coverage against real `THREE.Scene` graphs. No pixels rendered yet.
+Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geometry`, `material`, and live-vector transforms; `lookAt()`; placement (`parent`, `children`) defaulting to ownership; lifecycle; `Frame`, `loop()` (step capped at 0.1s); `Viewport<R>` refitting any assigned camera, perspective and orthographic cameras, lights, `Scene` `background`/`fog`/`environment`; guarded `_object`. 100% coverage against real `THREE.Scene` graphs; drawing verified in Chrome by `three-probe.ts`.
 
 ## MVP
 
-- [ ] `children` on `Group` and `Scene` - a pass-through pool, `has((node: Object3D) => node)`: fresh members owned, active ones placed as guests (the missing `add(node)`).
-- [ ] Viewport root - renderer, camera, resize, loop, `draw()`.
-- [ ] Camera and light nodes.
-- [ ] Asset node owning a loaded subtree, named parts as fields.
-- [ ] Real-browser verification of what draws, in the vein of `expressive-mvc's `cascade-probe.ts``.
-- [ ] Decide whether pointer events (raycasting) are MVP.
+- [x] Placement - `parent` and `children` (see Agreed shape).
+- [x] Guarded `_object` (see Agreed shape).
+- [x] Viewport root - renderer, resize, loop, `draw()`.
+- [x] Camera and light nodes - `PerspectiveCamera`, `OrthographicCamera` (a Viewport keeps its vertical extent and fits the width); `Light` (`color`, `intensity`) with `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`.
+- [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content - the old content stays until the new lands, and only the newest assignment loads; unset shows none. `loaded` is read-only. `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed first load reports to `catch` and destroys the node; a failed swap reports and keeps the old content. A failed URL leaves the cache, so the next instance retries. Placement runs at `ready`, so a group owning an asset is placed once the load lands - subtrees appear complete. Shared geometry belongs to the cache and is not disposed per instance.
+- [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
+- [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
 
 ## Prerequisites in mvc
 
-- **Public ownership** - done (gabeklein/expressive-mvc#460, published in `@expressive/mvc` 0.88.0). The owner walk uses `get(State, false)`.
+- **Public ownership** - done (gabeklein/expressive-mvc#460). The owner walk uses `get(Model, false)`; the build imports only `@expressive/mvc`.
+- **Field `get()` of a distant ancestor** - done (gabeklein/expressive-mvc#466). `parent = get(World)` resolves in a host-less scene.
+- **A sibling-owned instance from a host-less tree** - open. `Asset` finds its `Frame` by walking owners and their owned children (`nearest()`), as a `get(Frame)` field would; core could resolve this for a lookup at `ready`.
 
 ## Open decisions
 
-- Precedence when a node is both owned and placed in `children` - placement while held, owner on removal.
-- `children` on every node, or containers only - a pool per node has a cost.
-- `children` validated at `setup` - a subclass redeclaring it throws.
 - A subclass computed on a member throws today; it could be synced through an effect instead.
 
 ## Bullpen
 
-- Draw only when dirty - setters and attach/detach mark the scene; the loop runs continuously only while `frame.each` handlers exist. Raw `_object` writes outside a handler need explicit invalidation.
+- Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
+- An asset's `Frame` is found once at `ready`; a node moved under another viewport keeps the first clock.
+- An asset cache as a `Model` read through `get(Assets, url)` (core's overridable static `get`), for per-context caches and eviction.
+
+- Warning when a subclass field shares a name with a three.js property it does not reach (`power` on `PointLight`) - considered and set aside: three objects carry common names (`name`, `type`, `id`), so it would fire on legitimate fields.
+- A cheap "is this node drawn" check for frame handlers on unplaced nodes.
+
+- `node()` public, as r3f's `extend` - once a real case needs reactive members on a class we do not ship, and the internal form has settled.
+
+- Pausing - tabled until realistic scene structures exist. Few interactive scenes want to stop between interactions (idle animations, fidgets, particles), so a user-driven pause likely beats automatic invalidation. Silent transform mutation leaves no trace; any automatic scheme would rest on frame handlers implying continuous drawing.
+- Dev warning when a node's transform is assigned on many consecutive frames - animate by mutating in place.
+- Light targets - directional and spot lights aim at the world origin (three's default target). Aiming elsewhere wants a node as `target`, which three needs in the scene graph or updated by hand.
+- Texture disposal - `material.dispose()` leaves textures; counting them means walking a material's texture slots. A pin for resources too large to re-upload, if that cost shows up.
+- Shadows - `castShadow`/`receiveShadow` members and a Viewport switch for the renderer's shadow map.
+- React Native entry or recipe - `GLView` context, `endFrameEXP()` after each draw, resize and frame pacing without `ResizeObserver`.
+- A host Component rendering its own `<canvas>` and sizing wrapper - per host, once a standalone canvas exists.
+- Tuple form for transforms (`position = [0, 1, 0]`) - needs mvc's `Model.Assign` to honour setter types (new public type), or stays out.
+- World-preserving reparent (three's `attach`) as a node method; pooling helpers.
 - Lazy matrices - `matrixAutoUpdate` off; recompute only subtrees a setter moved.
 - Batching static subtrees - merged geometry, `InstancedMesh`, `BatchedMesh`.
 - JSX - host-rendered placement as a second attachment source (host-rendered instances have no owner, so no conflict), or reading the element tree directly.
 - `def()` layer closure - core, filed separately; not needed here.
-- `has<T>()` lists adopting fresh States - documented as non-owning (`has.md`).
 
 ## Non-goals
 

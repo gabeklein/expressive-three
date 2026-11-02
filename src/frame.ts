@@ -1,4 +1,4 @@
-import { State } from '@expressive/mvc';
+import { Model } from '@expressive/mvc';
 
 declare namespace Frame {
   type Handler = (delta: number, elapsed: number) => void;
@@ -6,9 +6,7 @@ declare namespace Frame {
 }
 
 /** Animation clock - provide one, read it with `get(Frame)`. */
-class Frame extends State {
-  static readonly global = false;
-
+class Frame extends Model {
   protected _handlers = new Set<Frame.Handler>();
   protected _elapsed = 0;
 
@@ -29,15 +27,18 @@ class Frame extends State {
   }
 }
 
+/** Longest step `loop()` passes - a tab returning from the background does not jump the clock. */
+const MAX_DELTA = 0.1;
+
 /** Drive `frame` from a scheduler, e.g. `requestAnimationFrame`. Returns a function to stop. */
-function loop(frame: Frame, schedule: Frame.Schedule) {
+function loop(frame: Pick<Frame, 'tick'>, schedule: Frame.Schedule) {
   let last: number | undefined;
   let active = true;
 
   function step(time: number) {
     if (!active) return;
 
-    frame.tick(last === undefined ? 0 : (time - last) / 1000);
+    frame.tick(last === undefined ? 0 : Math.min((time - last) / 1000, MAX_DELTA));
     last = time;
     schedule(step);
   }

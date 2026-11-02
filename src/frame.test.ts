@@ -72,9 +72,24 @@ describe('loop', () => {
     loop(frame, clock.schedule);
 
     clock.advance(1000);
-    clock.advance(1500);
+    clock.advance(1050);
 
-    expect(seen).toEqual([0, 0.5]);
+    expect(seen).toEqual([0, 0.05]);
+  });
+
+  it('will cap a step after a long gap', () => {
+    const clock = scheduler();
+    const frame = Frame.new();
+    const seen: number[] = [];
+
+    frame.each((delta) => seen.push(delta));
+
+    loop(frame, clock.schedule);
+
+    clock.advance(1000);
+    clock.advance(61000);
+
+    expect(seen).toEqual([0, 0.1]);
   });
 
   it('will stop scheduling', () => {

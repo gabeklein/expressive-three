@@ -4,7 +4,7 @@ Contributor guide for AI agents working in this repository.
 
 ## Overview
 
-`@expressive/three` - a three.js scene graph built from [Expressive MVC](https://github.com/gabeklein/expressive-mvc) `State` classes. Unreleased. [FEATURE.md](FEATURE.md) holds agreed scope and shape - update it in the PR that changes either. Expressive's own contract and conventions: [skills/SKILL.md](https://github.com/gabeklein/expressive-mvc/blob/main/skills/SKILL.md) - read the relevant parts before designing, and inspect source and tests before changing behavior.
+`@expressive/three` - a three.js scene graph built from [Expressive MVC](https://github.com/gabeklein/expressive-mvc) `Model` classes. Unreleased. [FEATURE.md](FEATURE.md) holds agreed scope and shape - update it in the PR that changes either. Expressive's own contract and conventions: [skills/SKILL.md](https://github.com/gabeklein/expressive-mvc/blob/main/skills/SKILL.md) - read the relevant parts before designing, and inspect source and tests before changing behavior.
 
 A single package at the root, with changesets and release CI as in [expressive-orm](https://github.com/gabeklein/expressive-orm). Install, scripts and builds run under bun; tests run on vitest.
 
@@ -12,6 +12,7 @@ A single package at the root, with changesets and release CI as in [expressive-o
 
 ```
 src/              - @expressive/three
+examples/         - playground: one page per example, each with a Playwright spec (see examples/AGENTS.md)
 .github/scripts   - three-probe: drawing verified in Chrome
 ```
 
@@ -22,6 +23,8 @@ bun install
 bun run test        # typecheck + vitest with 100% coverage gates
 bun run build       # tsdown to dist/
 bun run probe       # draw in Chrome and read back pixels (set CHROME)
+bun run examples    # playground dev server
+bun run e2e         # every example's spec in Chromium
 bun run changeset   # record a user-facing change
 ```
 

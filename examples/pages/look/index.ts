@@ -1,0 +1,1 @@
+export default ['lights', 'cameras'];

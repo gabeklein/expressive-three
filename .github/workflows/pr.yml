@@ -29,3 +29,15 @@ jobs:
       - name: Pack validation
         continue-on-error: true
         run: npm publish --dry-run
+
+  e2e:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup
+
+      - run: bunx playwright install --with-deps chromium
+
+      - run: bun run e2e

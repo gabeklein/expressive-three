@@ -1,5 +1,5 @@
 import { afterEach, expect } from 'vitest';
-import { Context, State } from '@expressive/mvc';
+import { Context, Model } from '@expressive/mvc';
 import { listener } from '@expressive/mvc/observable';
 
 interface CustomMatchers<R = unknown> {
@@ -26,10 +26,10 @@ async function toHaveUpdated(
   received: unknown,
   ...keys: (string | symbol | number)[]
 ) {
-  if (!(received instanceof State))
+  if (!(received instanceof Model))
     return {
       pass: false,
-      message: () => `Expected State but got ${received}.`
+      message: () => `Expected Model but got ${received}.`
     };
 
   const updated: string[] = [];

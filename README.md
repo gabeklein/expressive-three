@@ -1,6 +1,6 @@
 # @expressive/three
 
-A three.js scene graph built from Expressive MVC `State` classes. Unreleased -
+A three.js scene graph built from Expressive MVC `Model` classes. Unreleased -
 scope, decisions and status live in [FEATURE.md](FEATURE.md).
 
 ```ts
@@ -17,31 +17,79 @@ class Spinner extends Mesh {
 
   protected new() {
     return this.frame.each((delta) => {
-      this._object.rotation.y += this.speed * delta;
+      this.rotation.y += this.speed * delta; // in place - no dispatch
     });
   }
 }
 
 class Arena extends Scene {
-  frame = new Frame();
   ground = new Mesh();
-  spinner = new Spinner({ position: [0, 1, 0] });
+  spinner = new Spinner({ position: new THREE.Vector3(0, 1, 0) });
 }
 
-const arena = Arena.new();
+class Eye extends PerspectiveCamera {
+  position = new THREE.Vector3(0, 2, 6);
+}
 
-arena.spinner.position = [0, 2, 0]; // written to the three.js object, dispatched
+class Game extends Viewport {
+  scene = new Arena();
+  camera = new Eye();
+}
+
+const game = Game.new();
+const arena = game.scene;
+
+// any host: <canvas ref={game.canvas} /> - or game.attach(canvas | gl)
+
+arena.spinner.position = new THREE.Vector3(0, 2, 0); // copied into the object, dispatched
+arena.spinner.position.y += 1; // in place, silent - `set('position')` to announce
 arena.spinner.boost(1);
 ```
 
-- **Nodes** - `Object3D`, `Group`, `Scene`, `Mesh`. Each represents one three.js
-  object, made once by `create()` and held as protected `_object`.
-- **Members** - `visible`, `position`, `rotation`, `scale`, plus `geometry` and
-  `material` on `Mesh`, are reactive fields stored on the three.js object.
-  Vectors read and write as `[x, y, z]`. A subclass sets defaults as plain
-  fields; constructor arguments override them.
-- **Hierarchy** - a node attaches under the nearest `Object3D` owning it, through
-  a field or a `has()` pool, past owners which are not nodes. A `get()` reference
-  or an already-active instance does not attach. Destroying a node detaches it.
-- **`Frame`** - per-frame callbacks via `each()`, dispatching nothing. `loop()`
-  drives one from `requestAnimationFrame`.
+- **Nodes** - `Object3D`, `Group`, `Scene`, `Mesh`, `PerspectiveCamera`,
+  `OrthographicCamera`, and `AmbientLight`, `HemisphereLight`,
+  `DirectionalLight`, `PointLight`, `SpotLight` (all `Light`). Each represents
+  one three.js object, made once by `create()` and held as protected `_object`.
+  For a class not listed, extend `Object3D` and return it from `create()`.
+- **Members** - `visible`, plus `geometry` and `material` on `Mesh`, are
+  reactive fields stored on the three.js object. Cameras and lights add their
+  own (`fov`, `zoom`, `intensity`, ...); projection updates as they change. `position`, `rotation` and
+  `scale` read as the object's live vectors: assign one to place (copied in,
+  dispatched if changed), mutate in place to animate (silent). Light colors work
+  the same way. A subclass sets defaults as plain fields; constructor arguments
+  override them.
+- **Placement** - unset, a node draws under the nearest `Object3D` owning it,
+  through a field or a `has()` pool, past owners which are not nodes. A `get()`
+  reference or an already-active instance does not attach. Assign `parent` to
+  draw elsewhere (`null` for nowhere, or `parent = get(World)`); `children` lists
+  what draws under a node. Placement never changes lifetime - destroying a node
+  detaches it, destroying its parent returns it to its owner.
+- **`Asset`** - a loaded glTF model. `url` names the file, loaded once per URL
+  and cloned per instance; loading holds `ready`, so an owner is ready once its
+  assets are. `clip` plays a named animation; `part(name)` reaches a loaded
+  object for per-frame values.
+- **Disposal** - geometry and materials are counted across the nodes holding
+  them and disposed when the last one replaces them or is destroyed. Sharing
+  needs no marking.
+- **`Viewport`** - the one host-facing root. Owns the renderer and a `Frame`; a
+  subclass supplies `scene` and `camera`. Draws every frame while attached to a
+  canvas or WebGL context, sizing renderer and camera to it - including a camera
+  assigned later. `draw()` is protected - override to wrap it; `_renderer` is a
+  `WebGLRenderer` unless `createRenderer()` returns another (`Viewport<R>`).
+- **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`
+  drives one from `requestAnimationFrame`, capping a step at 0.1s.
+
+## Notes
+
+- **Swappable resources** - a default narrows a member's type: `geometry = BOX` makes it
+  `BoxGeometry`. Write `geometry: BufferGeometry = BOX` to swap shapes later.
+- **Switching cameras** - give each camera its own field and point `camera` at one. Replacing
+  the only reference destroys the old camera; separate fields keep each alive with its settings.
+- **Light toggles** - prefer `intensity = 0` to `visible = false` for quick toggles: changing the
+  number of visible lights makes three recompile every material's shader.
+- **Typed containers** - a container narrows what it holds with
+  `declare readonly children: readonly Mob[]`, so a control reading it back needs no cast.
+- **The world** - a node's `get(Scene)` resolves the nearest `Scene` above it, so
+  `parent = get(Scene)` places into the root without declaring a `World` class.
+- **Orthographic extent** - three's default is ±1 unit vertically; set `top` and `bottom` for the
+  scene's scale. The Viewport fits the width.
