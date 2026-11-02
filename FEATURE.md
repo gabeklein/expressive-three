@@ -29,9 +29,9 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - [x] Guarded `_object` (see Agreed shape).
 - [x] Viewport root - renderer, resize, loop, `draw()`.
 - [x] Camera and light nodes - `PerspectiveCamera`, `OrthographicCamera` (a Viewport keeps its vertical extent and fits the width); `Light` (`color`, `intensity`) with `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`.
-- [ ] Asset node owning a loaded subtree, named parts as fields. A wrapped part's unset `parent` keeps wherever the loaded graph put it.
+- [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content; `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed load reports to `catch` and destroys the node. Shared geometry belongs to the cache and is not disposed per instance.
 - [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
-- [ ] Decide whether pointer events (raycasting) are MVP.
+- [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
 
 ## Prerequisites in mvc
 
@@ -43,6 +43,9 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - A subclass computed on a member throws today; it could be synced through an effect instead.
 
 ## Bullpen
+
+- Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
+- An asset cache as a `Model` read through `get(Assets, url)` (core's overridable static `get`), for per-context caches and eviction.
 
 - Warning when a subclass field shares a name with a three.js property it does not reach (`power` on `PointLight`) - considered and set aside: three objects carry common names (`name`, `type`, `id`), so it would fire on legitimate fields.
 - A cheap "is this node drawn" check for frame handlers on unplaced nodes.

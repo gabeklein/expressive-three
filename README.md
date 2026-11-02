@@ -64,6 +64,10 @@ arena.spinner.boost(1);
   draw elsewhere (`null` for nowhere, or `parent = get(World)`); `children` lists
   what draws under a node. Placement never changes lifetime - destroying a node
   detaches it, destroying its parent returns it to its owner.
+- **`Asset`** - a loaded glTF model. `url` names the file, loaded once per URL
+  and cloned per instance; loading holds `ready`, so an owner is ready once its
+  assets are. `clip` plays a named animation; `part(name)` reaches a loaded
+  object for per-frame values.
 - **Disposal** - geometry and materials are counted across the nodes holding
   them and disposed when the last one replaces them or is destroyed. Sharing
   needs no marking.
@@ -85,5 +89,7 @@ arena.spinner.boost(1);
   number of visible lights makes three recompile every material's shader.
 - **Typed containers** - a container narrows what it holds with
   `declare readonly children: readonly Mob[]`, so a control reading it back needs no cast.
+- **The world** - a node's `get(Scene)` resolves the nearest `Scene` above it, so
+  `parent = get(Scene)` places into the root without declaring a `World` class.
 - **Orthographic extent** - three's default is ±1 unit vertically; set `top` and `bottom` for the
   scene's scale. The Viewport fits the width.
