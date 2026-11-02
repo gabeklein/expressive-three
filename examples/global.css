@@ -54,3 +54,26 @@ canvas.stage {
 }
 
 small { color: var(--muted); }
+
+.source {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 var(--s4) var(--s6);
+}
+
+.source figure { margin: var(--s5) 0 0; }
+
+.source figcaption {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: var(--s2);
+}
+
+.source pre {
+  margin: 0;
+  padding: var(--s4);
+  overflow-x: auto;
+  border-radius: var(--s2);
+  background: var(--surface);
+  font: 13px/1.5 ui-monospace, monospace;
+}

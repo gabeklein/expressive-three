@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 const port = Number(process.env.PORT) || 5190;
 
 export default defineConfig({
-  testMatch: ['pages/**/*.spec.ts', 'coverage.spec.ts'],
+  testMatch: ['pages/**/*.spec.ts', 'app/*.spec.ts', 'coverage.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
