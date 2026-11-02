@@ -31,7 +31,7 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - [x] Camera and light nodes - `PerspectiveCamera`, `OrthographicCamera` (a Viewport keeps its vertical extent and fits the width); `Light` (`color`, `intensity`) with `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`.
 - [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content - the old content stays until the new lands, and only the newest assignment loads; unset shows none. `loaded` is read-only. `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed first load reports to `catch` and destroys the node; a failed swap reports and keeps the old content. A failed URL leaves the cache, so the next instance retries. Placement runs at `ready`, so a group owning an asset is placed once the load lands - subtrees appear complete. Shared geometry belongs to the cache and is not disposed per instance.
 - [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
-- [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
+- [x] Pointer events - a `Viewport` owns a `Pointer` (`get(Pointer)`). Each frame, after drawing, it raycasts from the camera through the pointer into nodes marked `interactive` (a field on every node, default false) and what draws under them; a hit resolves to the nearest interactive node. Non-interactive and hidden nodes are passed through. `hit`, `point` and `pressed` are read-only state, dispatched when they change. A press released over the same node dispatches `Pointer.click` on it and each node it draws under, skipping foreign objects. Only a canvas surface is tracked; a WebGL context gets no pointer. No per-node `hovered` - `pointer.hit === this` until a need shows.
 
 ## Prerequisites in mvc
 
@@ -44,6 +44,10 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - A subclass computed on a member throws today; it could be synced through an effect instead.
 
 ## Bullpen
+
+- Dragging - mutate in place while `pressed`, assign on release; a drag plane and pointer capture.
+- Pointer for a WebGL context (React Native) - the host feeds positions; needs a public seam.
+- Stopping `Pointer.click` part way up, and pointer events beyond click (`down`, `up`, double click).
 
 - Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
 - An asset's `Frame` is found once at `ready`; a node moved under another viewport keeps the first clock.

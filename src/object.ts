@@ -22,6 +22,9 @@ abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends Model
 
   declare visible: boolean;
 
+  /** Whether `Pointer` can hit this node - hits on anything drawn under it resolve here. */
+  interactive = false;
+
   /** Live vector - mutate in place to animate without dispatch; assign one to place and dispatch. */
   declare position: THREE.Vector3;
   declare rotation: THREE.Euler;
@@ -97,6 +100,10 @@ class Scene extends node(THREE.Scene, ['background', 'fog', 'environment']) {}
 class Mesh extends node(THREE.Mesh, ['geometry', 'material']) {}
 
 type Members = Record<string, unknown>;
+
+function nodeOf(object: THREE.Object3D) {
+  return NODE.get(object);
+}
 
 function objectOf(self: object) {
   return OBJECT.get(self)!;
@@ -325,4 +332,4 @@ Object3D.on({
   ready: mount
 });
 
-export { Group, Mesh, node, Object3D, objectOf, Scene, verify };
+export { Group, Mesh, node, nodeOf, Object3D, objectOf, Scene, verify };
