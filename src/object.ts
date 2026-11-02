@@ -111,6 +111,7 @@ function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.O
   return (self: T) => {
     const object = objectOf(self) as unknown as Members;
     const held: Members = {};
+    const live = new Set(keys.filter((key) => vector(object[key])));
 
     for (const key of keys) {
       const own = Object.getOwnPropertyDescriptor(self, key);
@@ -122,14 +123,14 @@ function contract<T extends Object3D>(keys: string[], changed?: (object: THREE.O
 
       if (own) {
         delete (self as unknown as Members)[key];
-        place(object, key, own.value);
+        place(object, key, own.value, live.has(key));
       }
 
       (self as State).set(key, {
         get: () => object[key],
         set(value: unknown) {
           try {
-            return write(self, object, key, value);
+            return write(self, object, key, value, live.has(key));
           } finally {
             const previous = held[key];
 
@@ -177,27 +178,22 @@ function release(value: unknown) {
   }
 }
 
-function vector(object: Members, key: string) {
-  const value = object[key];
-  return value instanceof THREE.Vector3 || value instanceof THREE.Euler || value instanceof THREE.Color
-    ? (value as THREE.Vector3)
-    : undefined;
+function vector(value: unknown) {
+  return value instanceof THREE.Vector3 || value instanceof THREE.Euler || value instanceof THREE.Color;
 }
 
-function place(object: Members, key: string, value: unknown) {
-  const v = vector(object, key);
-
-  if (v) v.copy(value as THREE.Vector3);
+function place(object: Members, key: string, value: unknown, live: boolean) {
+  if (live) (object[key] as THREE.Vector3).copy(value as THREE.Vector3);
   else object[key] = value;
 }
 
-function write(self: State, object: Members, key: string, value: unknown) {
-  const v = vector(object, key);
-
-  if (!v) {
+function write(self: State, object: Members, key: string, value: unknown, live: boolean) {
+  if (!live) {
     object[key] = value;
     return;
   }
+
+  const v = object[key] as THREE.Vector3;
 
   if (!v.equals(value as THREE.Vector3)) {
     v.copy(value as THREE.Vector3);

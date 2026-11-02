@@ -784,4 +784,38 @@ describe('Scene', () => {
     expect((room.background as THREE.Color).getHexString()).toBe('ff0000');
     expect(room.fog).toBeInstanceOf(THREE.Fog);
   });
+
+  it('will replace a color background with a texture', () => {
+    const room = Scene.new({ background: new THREE.Color('red') });
+    const texture = new THREE.Texture();
+
+    room.background = texture;
+
+    expect((objectOf(room) as THREE.Scene).background).toBe(texture);
+  });
+
+  it('will clear a color background', () => {
+    const room = Scene.new({ background: new THREE.Color('red') });
+
+    room.background = null;
+
+    expect((objectOf(room) as THREE.Scene).background).toBeNull();
+  });
+
+  it('will not mutate a shared background', () => {
+    const shared = new THREE.Color('red');
+    const room = Scene.new({ background: shared });
+
+    room.background = new THREE.Color('blue');
+
+    expect(shared.getHexString()).toBe('ff0000');
+    expect(((objectOf(room) as THREE.Scene).background as THREE.Color).getHexString()).toBe('0000ff');
+  });
+
+  it('will route environment to the three.js scene', () => {
+    const texture = new THREE.Texture();
+    const room = Scene.new({ environment: texture });
+
+    expect((objectOf(room) as THREE.Scene).environment).toBe(texture);
+  });
 });
