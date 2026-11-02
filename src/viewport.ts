@@ -6,7 +6,7 @@ import { Frame, loop } from './frame';
 import { Object3D, objectOf, Scene, verify } from './object';
 
 declare namespace Viewport {
-  /** A canvas, or a WebGL context a host made - React Native's `GLView` gives one. */
+  /** A canvas, or a WebGL context a host made. */
   type Surface = HTMLCanvasElement | WebGLRenderingContext | WebGL2RenderingContext;
 
   interface Renderer {
@@ -115,7 +115,7 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 }
 
 Viewport.on({
-  ready(self) {
+  setup(self) {
     return () => DETACH.get(self)?.();
   }
 });

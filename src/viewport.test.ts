@@ -234,6 +234,24 @@ describe('Viewport', () => {
     expect(dispose).toHaveBeenCalled();
   });
 
+  it('will detach when destroyed before ready', () => {
+    class Loading extends Test {
+      scene = new (class extends Scene {
+        protected new() {
+          return new Promise<void>(() => {});
+        }
+      })();
+    }
+
+    const game = Loading.new();
+    const { dispose } = game._fake;
+
+    game.attach(canvas());
+    game.set(null);
+
+    expect(dispose).toHaveBeenCalled();
+  });
+
   it('will throw without a scene or camera', () => {
     class Empty extends Viewport {}
 
