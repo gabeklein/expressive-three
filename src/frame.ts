@@ -7,8 +7,6 @@ declare namespace Frame {
 
 /** Animation clock - provide one, read it with `get(Frame)`. */
 class Frame extends Model {
-  static readonly global = false;
-
   protected _handlers = new Set<Frame.Handler>();
   protected _elapsed = 0;
 
