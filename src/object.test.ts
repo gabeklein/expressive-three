@@ -429,6 +429,7 @@ describe('placement', () => {
     world.hive = undefined;
 
     expect(objectOf(bee).parent).toBe(objectOf(world));
+    expect(bee.parent).toBeUndefined();
     expect(bee.get(null)).toBe(false);
   });
 

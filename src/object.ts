@@ -233,7 +233,7 @@ function placement(self: Object3D) {
     delete (self as Partial<Object3D>).parent;
 
     (self as State).set('parent', {
-      get: () => value,
+      get: () => (value && value.get(null) ? undefined : value),
       set(next: unknown) {
         if (next !== value) {
           value = next as Object3D | null | undefined;
