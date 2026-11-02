@@ -10,6 +10,8 @@ bunx playwright test -c examples pages/<group>/   # one group
 
 ## Page conventions (`pages/<group>/<page>/App.tsx`)
 
+The shell lists every file in a page's folder below the demo - `App.tsx` first, specs left out. A page that outgrows one file splits into siblings (`Game.ts`, `Inspector.tsx`) and they show up automatically.
+
 Declaration order:
 
 1. Imports, then module constants.

@@ -23,11 +23,21 @@ export const Index = () => (
   </main>
 );
 
-export const Shell = (props: { page: string; children: Component.Node }) => (
+export const Shell = (props: { page: string; source: { name: string; code: string }[]; children: Component.Node }) => (
   <>
     <nav className="crumbs">
       <a href="/">Examples</a> / {props.page}
     </nav>
     {props.children}
+    <section className="source" aria-label="Source">
+      {props.source.map((file) => (
+        <figure key={file.name}>
+          <figcaption>{file.name}</figcaption>
+          <pre>
+            <code>{file.code}</code>
+          </pre>
+        </figure>
+      ))}
+    </section>
   </>
 );
