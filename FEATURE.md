@@ -29,7 +29,7 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - [x] Guarded `_object` (see Agreed shape).
 - [x] Viewport root - renderer, resize, loop, `draw()`.
 - [x] Camera and light nodes - `PerspectiveCamera`, `OrthographicCamera` (a Viewport keeps its vertical extent and fits the width); `Light` (`color`, `intensity`) with `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`.
-- [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content; `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed load reports to `catch` and destroys the node. Shared geometry belongs to the cache and is not disposed per instance.
+- [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content - the old content stays until the new lands, and only the newest assignment loads; unset shows none. `loaded` is read-only. `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed first load reports to `catch` and destroys the node; a failed swap reports and keeps the old content. A failed URL leaves the cache, so the next instance retries. Placement runs at `ready`, so a group owning an asset is placed once the load lands - subtrees appear complete. Shared geometry belongs to the cache and is not disposed per instance.
 - [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
 - [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
 
@@ -37,6 +37,7 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 
 - **Public ownership** - done (gabeklein/expressive-mvc#460). The owner walk uses `get(Model, false)`; the build imports only `@expressive/mvc`.
 - **Field `get()` of a distant ancestor** - done (gabeklein/expressive-mvc#466). `parent = get(World)` resolves in a host-less scene.
+- **A sibling-owned instance from a host-less tree** - open. `Asset` finds its `Frame` by walking owners and their owned children (`nearest()`), as a `get(Frame)` field would; core could resolve this for a lookup at `ready`.
 
 ## Open decisions
 
@@ -45,6 +46,7 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 ## Bullpen
 
 - Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
+- An asset's `Frame` is found once at `ready`; a node moved under another viewport keeps the first clock.
 - An asset cache as a `Model` read through `get(Assets, url)` (core's overridable static `get`), for per-context caches and eviction.
 
 - Warning when a subclass field shares a name with a three.js property it does not reach (`power` on `PointLight`) - considered and set aside: three objects carry common names (`name`, `type`, `id`), so it would fire on legitimate fields.

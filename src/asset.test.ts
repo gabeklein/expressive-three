@@ -15,7 +15,10 @@ vi.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({
   GLTFLoader: class {
     loadAsync(url: string) {
       requested.push(url);
-      return Promise.resolve(model(url));
+
+      return url.includes('flaky') && requested.filter((at) => at == url).length == 1
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve(model(url));
     }
   }
 }));
@@ -127,16 +130,94 @@ describe('Asset', () => {
     expect(objectOf(robot).children.map((child) => child.name)).toEqual(['drone']);
   });
 
-  it('will keep the newest url when an earlier load lands late', async () => {
+  it('will load a url changed while its first file loads', async () => {
     const robot = Robot.new();
 
+    await settle();
     robot.url = '/drone.glb';
     file('/drone.glb').resolve(model('drone'));
     await settle();
+
+    expect(robot.loaded).toBe(false);
+
     file('/robot.glb').resolve(model('robot'));
     await settle();
 
     expect(objectOf(robot).children.map((child) => child.name)).toEqual(['drone']);
+    expect(robot.loaded).toBe(true);
+  });
+
+  it('will skip a url replaced before it lands', async () => {
+    const robot = Robot.new();
+
+    file('/robot.glb').resolve(model('robot'));
+    await settle();
+
+    robot.url = '/drone.glb';
+    await settle();
+    robot.url = '/crate.glb';
+    file('/drone.glb').reject(new Error('404'));
+    file('/crate.glb').resolve(model('crate'));
+    await settle();
+
+    expect(objectOf(robot).children.map((child) => child.name)).toEqual(['crate']);
+  });
+
+  it('will report a swap that fails to load and keep its content', async () => {
+    const caught: unknown[] = [];
+
+    class Broken extends Robot {}
+
+    Broken.on({ catch: (error, kind) => void caught.push([kind, error]) });
+
+    const robot = Broken.new();
+
+    file('/robot.glb').resolve(model('robot'));
+    await settle();
+
+    robot.url = '/missing.glb';
+    file('/missing.glb').reject(new Error('404'));
+    await settle();
+
+    expect(caught).toEqual([['effect', new Error('404')]]);
+    expect(robot.get(null)).toBe(false);
+    expect(objectOf(robot).children.map((child) => child.name)).toEqual(['robot']);
+  });
+
+  it('will load nothing without a url, and unload when it is cleared', async () => {
+    let ready = false;
+
+    class Empty extends Held {}
+
+    Empty.on({ ready: () => void (ready = true) });
+
+    const empty = Empty.new();
+
+    await settle();
+    empty.clip = 'Spin';
+    await settle();
+
+    expect(ready).toBe(true);
+    expect(empty.loaded).toBe(false);
+
+    empty.url = '/robot.glb';
+    file('/robot.glb').resolve(model('robot'));
+    await settle();
+
+    expect(empty.loaded).toBe(true);
+
+    empty.url = undefined;
+    await settle();
+
+    expect(empty.loaded).toBe(false);
+    expect(objectOf(empty).children).toEqual([]);
+  });
+
+  it('will not let loaded be assigned', () => {
+    const robot = Robot.new();
+
+    // @ts-expect-error
+    expect(() => (robot.loaded = true)).toThrow(/read-only/);
   });
 
   it('will play a clip on the frame clock and crossfade to another', async () => {
@@ -248,5 +329,25 @@ describe('Asset', () => {
 
     expect(requested).toEqual(['/crate.glb']);
     expect(a.loaded && b.loaded).toBe(true);
+  });
+
+  it('will retry a url whose load failed', async () => {
+    class Flaky extends Asset {
+      url = '/flaky.glb';
+    }
+
+    Flaky.on({ catch: () => {} });
+
+    const first = Flaky.new();
+
+    await settle();
+
+    const second = Flaky.new();
+
+    await settle();
+
+    expect(requested).toEqual(['/flaky.glb', '/flaky.glb']);
+    expect(first.get(null)).toBe(true);
+    expect(second.loaded).toBe(true);
   });
 });
