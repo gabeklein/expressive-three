@@ -277,6 +277,28 @@ describe('pointer', () => {
     expect(box.focus).toBeUndefined();
   });
 
+  it('will keep one object while aimed at, updating its sources', async () => {
+    const game = Test.new();
+    const { send } = attached(game);
+    const { box } = game.scene as Stage;
+    const other = Pointer.new();
+    const element = canvas();
+
+    track(other, element, () => cast(other, objectOf(game.scene), objectOf(game.camera) as THREE.Camera));
+
+    send('pointermove');
+    game.step();
+
+    const focus = box.focus!;
+
+    await expect(box).toHaveUpdated('focus');
+    sender(element)('pointerdown');
+
+    expect(box.focus).toBe(focus);
+    expect(focus.sources).toEqual([game.pointer, other]);
+    await expect(box).toHaveUpdated('focus');
+  });
+
   it('will let go of a node destroyed while focused', () => {
     const game = Test.new();
     const { send } = attached(game);
@@ -493,5 +515,57 @@ describe('gestures', () => {
     game.step();
     send('pointerdown');
     expect(end).toHaveBeenCalledTimes(2);
+  });
+
+  it('will take listeners added while aimed at, dropping them when aim leaves', () => {
+    const game = Test.new();
+    const { send } = attached(game);
+    const { box } = game.scene as Stage;
+    const select = vi.fn();
+    const hold = vi.fn();
+    const end = vi.fn();
+    const drag = vi.fn(() => end);
+
+    send('pointermove');
+    game.step();
+
+    const focus = box.focus!;
+    const stop = focus.select(select);
+
+    focus.hold(hold);
+    focus.drag(drag);
+
+    send('pointerdown');
+    send('pointerup');
+    expect(select).toHaveBeenCalledTimes(1);
+
+    send('pointerdown');
+    game.wait(0.6);
+    send('pointerup');
+    expect(hold).toHaveBeenCalledTimes(1);
+
+    send('pointerdown');
+    send('pointermove', 0.6);
+    game.step();
+    send('pointerup', 0.6);
+    expect(drag).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(1);
+
+    stop();
+    send('pointermove');
+    game.step();
+    send('pointerdown');
+    send('pointerup');
+    expect(select).toHaveBeenCalledTimes(1);
+
+    send('pointerleave');
+    send('pointermove');
+    game.step();
+    send('pointerdown');
+    game.wait(0.6);
+    send('pointerup');
+
+    expect(box.focus).not.toBe(focus);
+    expect(hold).toHaveBeenCalledTimes(1);
   });
 });

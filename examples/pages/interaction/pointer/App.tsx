@@ -1,5 +1,5 @@
 import { Component } from '@expressive/mvc';
-import { Frame, get, Mesh, PerspectiveCamera, pointer, Scene, Viewport } from '@expressive/three';
+import { Frame, get, Mesh, PerspectiveCamera, Pointer, pointer, Scene, Viewport } from '@expressive/three';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 
 import { Inspector } from './Inspector';
@@ -10,9 +10,13 @@ export default () => (
     <p>
       A <code>focus = pointer(…)</code> field makes a crate a target for the pointer - mouse, touch or
       pen. It reads what aims at the crate, or <code>undefined</code>, and the crate's effect lights up
-      from it. The handlers take the gestures: <code>select</code> toggles spinning, <code>hold</code>{' '}
-      charges the crate until its returned function runs on release, and <code>drag</code> follows the
-      live <code>move</code> in a frame handler until the drop.
+      from it. Its handlers are the crate's own gestures: <code>select</code> toggles spinning, and{' '}
+      <code>hold</code> charges the crate until its returned function runs on release.
+    </p>
+    <p>
+      Dragging belongs to a mode, not the crate. In move mode the game's effect adds a{' '}
+      <code>drag</code> listener to whatever crate the pointer is on, through <code>focus.drag</code> -
+      dropped when the pointer moves off or the mode ends. Without it, a dragged press still selects.
     </p>
     <p>
       The viewport's <code>Pointer</code> holds what it aims at as <code>hit</code>. The inspector below
@@ -35,20 +39,21 @@ export class Crate extends Mesh {
     hold: () => {
       this.charging = true;
       return () => void (this.charging = false);
-    },
-    drag: (move) => {
-      const origin = this.position.clone();
-      const stop = this.frame.each(() => void this.position.copy(origin).add(move.delta));
-
-      return () => {
-        stop();
-        this.set('position');
-      };
     }
   });
 
   geometry = new BoxGeometry(1.6, 1.6, 1.6);
   material = new MeshBasicMaterial();
+
+  follow(move: Pointer.Move) {
+    const origin = this.position.clone();
+    const stop = this.frame.each(() => void this.position.copy(origin).add(move.delta));
+
+    return () => {
+      stop();
+      this.set('position');
+    };
+  }
 
   protected new() {
     this.get(($) => void this.material.color.set($.charging ? 'gold' : $.focus ? 'white' : $.color));
@@ -72,6 +77,15 @@ class Eye extends PerspectiveCamera {
 class Game extends Viewport {
   scene = new Yard();
   camera = new Eye();
+  moving = false;
+
+  protected new() {
+    this.get(($) => {
+      const crate = $.moving ? ($.pointer.hit as Crate | undefined)?.is : undefined;
+
+      return crate?.focus?.drag((move) => crate.follow(move));
+    });
+  }
 }
 
 class Picking extends Component {
@@ -81,6 +95,11 @@ class Picking extends Component {
     return (
       <>
         <canvas className="stage" ref={this.game.canvas} />
+        <div className="controls">
+          <button onClick={() => (this.game.moving = !this.game.moving)}>
+            {this.game.moving ? 'Stop moving' : 'Move'}
+          </button>
+        </div>
         <Inspector />
       </>
     );

@@ -7,8 +7,10 @@ const gold = ([r, g, b]: number[]) => r > 200 && g > 150 && b < 80;
 
 async function stage(page: Page) {
   const canvas = page.locator('canvas.stage');
-  const box = (await canvas.boundingBox())!;
-  const at = (x: number, y = 0.5) => [box.x + box.width * x, box.y + box.height * y] as const;
+  const at = async (x: number, y = 0.5) => {
+    const box = (await canvas.boundingBox())!;
+    return [box.x + box.width * x, box.y + box.height * y] as const;
+  };
 
   await drawn(canvas, green);
 
@@ -27,7 +29,7 @@ test('will light the crate under the pointer, inspect it, and spin it on select'
 
   await expect(hit).toHaveText('Nothing under the pointer.');
 
-  await aim(page, at(0.5));
+  await aim(page, await at(0.5));
   await expect(hit).toHaveText('green');
   await expect(page.locator('.focus')).toHaveText('yes');
   await drawn(canvas, white);
@@ -37,7 +39,7 @@ test('will light the crate under the pointer, inspect it, and spin it on select'
   await page.mouse.up();
   await expect(page.locator('.spinning')).toHaveText('yes');
 
-  await aim(page, at(0.66));
+  await aim(page, await at(0.66));
   await expect(hit).toHaveText('blue');
   await expect(page.locator('.spinning')).toHaveText('no');
   await drawn(canvas, green);
@@ -51,7 +53,7 @@ test('will charge a held crate until release, without selecting it', async ({ pa
 
   const { canvas, at } = await stage(page);
 
-  await aim(page, at(0.5));
+  await aim(page, await at(0.5));
   await page.mouse.down();
   await expect(page.locator('.charging')).toHaveText('yes');
   await drawn(canvas, gold);
@@ -62,20 +64,29 @@ test('will charge a held crate until release, without selecting it', async ({ pa
   await drawn(canvas, white);
 });
 
-test('will drag a crate and drop it where the pointer is', async ({ page, open }) => {
+test('will select a dragged crate until move mode adds drag', async ({ page, open }) => {
   await open('interaction/pointer');
 
   const { canvas, at } = await stage(page);
 
-  await aim(page, at(0.5));
+  await aim(page, await at(0.5));
   await page.mouse.down();
-  await page.mouse.move(...at(0.5, 0.25), { steps: 8 });
+  await page.mouse.move(...(await at(0.52)), { steps: 4 });
+  await page.mouse.up();
+  await expect(page.locator('.spinning')).toHaveText('yes');
+  await drawn(canvas, white, 0.5, 0.5);
+
+  await page.getByRole('button', { name: 'Move' }).click();
+  await aim(page, await at(0.66));
+  await aim(page, await at(0.5));
+  await page.mouse.down();
+  await page.mouse.move(...(await at(0.5, 0.25)), { steps: 8 });
   await drawn(canvas, white, 0.5, 0.25);
   await page.mouse.up();
 
   await drawn(canvas, dark, 0.5, 0.5);
   await expect(page.locator('.hit')).toHaveText('green');
-  await expect(page.locator('.spinning')).toHaveText('no');
+  await expect(page.locator('.spinning')).toHaveText('yes');
 });
 
 test.describe('on a touchscreen', () => {

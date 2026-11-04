@@ -24,17 +24,30 @@ declare namespace Pointer {
     drag?(move: Move): End;
   }
 
-  /** A focused node's view of what aims at it. `point` is live - it moves without dispatch. */
+  /**
+   * A node's view of what aims at it - one object while aimed at, updated in place. `point` is live and
+   * moves without dispatch. Gesture listeners added here are dropped when aim leaves.
+   */
   interface Focus {
     readonly point: THREE.Vector3;
     readonly sources: readonly Pointer[];
+
+    /** Handle select while aimed at. Returns a function to stop. */
+    select(handler: () => void): () => void;
+
+    /** Handle hold while aimed at. Returns a function to stop. */
+    hold(handler: () => End): () => void;
+
+    /** Handle drag while aimed at. Returns a function to stop. */
+    drag(handler: (move: Move) => End): () => void;
   }
 }
 
 interface Target {
   keys: string[];
   handlers: Pointer.Handlers[];
-  sources: Set<Pointer>;
+  listeners: Set<Pointer.Handlers>;
+  sources: Pointer[];
   point: THREE.Vector3;
   focus?: Pointer.Focus;
 }
@@ -103,7 +116,8 @@ function pointer(handlers?: (() => void) | Pointer.Handlers) {
 
     let target = TARGET.get(self);
 
-    if (!target) TARGET.set(self, (target = { keys: [], handlers: [], sources: new Set(), point: new THREE.Vector3() }));
+    if (!target)
+      TARGET.set(self, (target = { keys: [], handlers: [], listeners: new Set(), sources: [], point: new THREE.Vector3() }));
 
     target.keys.push(key);
 
@@ -112,7 +126,7 @@ function pointer(handlers?: (() => void) | Pointer.Handlers) {
     return {
       get: () => target.focus as Pointer.Focus,
       set: false,
-      destroy: () => target.sources.clear()
+      destroy: () => void (target.sources.length = 0)
     };
   }) as Pointer.Focus | undefined;
 }
@@ -228,12 +242,18 @@ function gesture(press: Press, camera: THREE.Camera, delta: number) {
   }
 }
 
+function handlers(node: Object3D) {
+  const { handlers, listeners } = TARGET.get(node)!;
+
+  return [...handlers, ...listeners];
+}
+
 function can(node: Object3D, gesture: keyof Pointer.Handlers) {
-  return TARGET.get(node)!.handlers.some((handlers) => handlers[gesture]);
+  return handlers(node).some((handlers) => handlers[gesture]);
 }
 
 function start(node: Object3D, call: (handlers: Pointer.Handlers) => Pointer.End): Pointer.End {
-  const ends = TARGET.get(node)!.handlers.map(call);
+  const ends = handlers(node).map(call);
 
   return () => ends.forEach((end) => end?.());
 }
@@ -246,7 +266,7 @@ function release(aim: Aim, select: boolean | undefined) {
   if (!press) return;
 
   if (press.end) press.end();
-  else if (select) for (const handlers of TARGET.get(press.node)!.handlers) handlers.select?.();
+  else if (select) for (const each of handlers(press.node)) each.select?.();
 }
 
 function collect(object: THREE.Object3D, inside: Object3D | undefined, owner: Map<THREE.Object3D, Object3D>) {
@@ -269,13 +289,17 @@ function hit(source: Pointer, node: Object3D | undefined, point: THREE.Vector3 |
     source.set('hit');
 
     const left = last && TARGET.get(last)!;
+    const at = left ? left.sources.indexOf(source) : -1;
 
-    if (left && left.sources.delete(source)) focus(last!, left);
+    if (at >= 0) {
+      left!.sources.splice(at, 1);
+      focus(last!, left!);
+    }
 
     if (node) {
       const target = TARGET.get(node)!;
 
-      target.sources.add(source);
+      target.sources.push(source);
       focus(node, target);
     }
   }
@@ -289,7 +313,27 @@ function hit(source: Pointer, node: Object3D | undefined, point: THREE.Vector3 |
 }
 
 function focus(node: Object3D, target: Target) {
-  target.focus = target.sources.size ? Object.freeze({ point: target.point, sources: [...target.sources] }) : undefined;
+  if (!target.sources.length) {
+    target.focus = undefined;
+    target.listeners.clear();
+  } else if (!target.focus) {
+    const { listeners } = target;
+    const listen = (gesture: keyof Pointer.Handlers) => (handler: never) => {
+      const entry = { [gesture]: handler };
+
+      listeners.add(entry);
+
+      return () => void listeners.delete(entry);
+    };
+
+    target.focus = Object.freeze({
+      point: target.point,
+      sources: target.sources,
+      select: listen('select'),
+      hold: listen('hold'),
+      drag: listen('drag')
+    });
+  }
 
   for (const key of target.keys) node.set(key);
 }
