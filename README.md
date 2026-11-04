@@ -76,14 +76,16 @@ arena.spinner.boost(1);
   canvas or WebGL context, sizing renderer and camera to it - including a camera
   assigned later. `draw()` is protected - override to wrap it; `_renderer` is a
   `WebGLRenderer` unless `createRenderer()` returns another (`Viewport<R>`).
-- **Focus** - `focus = pointer()` makes a node focusable: hits on it or anything
-  drawn under it resolve to it, and the field reads true while any source aims
-  there. A Viewport's `focus` is one source - the pointer over its canvas, for
-  mouse, touch and pen - read with `get(Focus)`: `hit` is the focusable node it
-  aims at, checked every frame, `point` where it meets it, `pressed` while
-  pressing. All read-only state. A press released over the same node dispatches
-  `Focus.select` on it, then on each node it draws under:
-  `this.set(Focus.select, () => …)`.
+- **Pointer** - `focus = pointer(handlers?)` makes a node a pointer target: hits
+  on it or anything drawn under it resolve to it. The field reads
+  `{ point, sources }` while any source aims there, else `undefined`; `point` is
+  live and moves without dispatch. Handlers take gestures - a function alone is
+  `select`; `{ select, hold, drag }` for more. `hold` and `drag` may return a
+  function run when the gesture ends (release, drop); `drag(move)` gets a live
+  `move.point`/`move.delta` on a plane facing the camera, read it in a frame
+  handler. A Viewport's `pointer` is one source - mouse, touch or pen over its
+  canvas - read with `get(Pointer)`: `hit`, `point` and `pressed` are read-only
+  state.
 - **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`
   drives one from `requestAnimationFrame`, capping a step at 0.1s.
 

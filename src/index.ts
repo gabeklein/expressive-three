@@ -3,7 +3,7 @@ export { Asset } from './asset';
 export { OrthographicCamera, PerspectiveCamera } from './camera';
 export { AmbientLight, DirectionalLight, HemisphereLight, Light, PointLight, SpotLight } from './light';
 export { Group, Mesh, Object3D, Scene } from './object';
-export { Focus, pointer } from './focus';
+export { Pointer, pointer } from './pointer';
 export { Viewport } from './viewport';
 
 export { Model, Model as default, Context } from '@expressive/mvc';

@@ -40,7 +40,8 @@ function canvas(width = 800, height = 400) {
     getContext() {},
     clientWidth: width,
     clientHeight: height,
-    getBoundingClientRect: () => ({ left: 0, top: 0, width, height })
+    getBoundingClientRect: () => ({ left: 0, top: 0, width, height }),
+    setPointerCapture() {}
   }) as unknown as HTMLCanvasElement;
 }
 
