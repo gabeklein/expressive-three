@@ -22,9 +22,6 @@ abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends Model
 
   declare visible: boolean;
 
-  /** Whether `Pointer` can hit this node - hits on anything drawn under it resolve here. */
-  interactive = false;
-
   /** Live vector - mutate in place to animate without dispatch; assign one to place and dispatch. */
   declare position: THREE.Vector3;
   declare rotation: THREE.Euler;

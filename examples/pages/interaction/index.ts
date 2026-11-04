@@ -1,1 +1,1 @@
-export default ['pointer'];
+export default ['focus'];

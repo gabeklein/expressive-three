@@ -1,18 +1,18 @@
 import { Component } from '@expressive/mvc';
-import { Frame, get, Mesh, PerspectiveCamera, Pointer, Scene, Viewport } from '@expressive/three';
+import { Focus, focus, Frame, get, Mesh, PerspectiveCamera, Scene, Viewport } from '@expressive/three';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 
 import { Inspector } from './Inspector';
 
 export default () => (
   <div className="container">
-    <h1>Pointer</h1>
+    <h1>Focus</h1>
     <p>
-      A <code>Viewport</code> owns a <code>Pointer</code>, and every frame it finds the nearest{' '}
-      <code>interactive</code> node under it. <code>hit</code> is ordinary state: each crate's effect
-      compares it to itself to light up, and the inspector below the canvas reads it through context to
-      show the hovered crate's own fields. Clicking dispatches <code>Pointer.click</code> on the crate,
-      which toggles <code>spinning</code>.
+      A <code>focused = focus()</code> field makes a crate focusable and reads true while the pointer -
+      mouse, touch or pen - aims at it; the crate's effect lights it up from that. The viewport's{' '}
+      <code>Focus</code> holds what it aims at as <code>hit</code>, and the inspector below the canvas
+      reads it through context to show that crate's own fields. Pressing and releasing over a crate
+      dispatches <code>Focus.select</code> on it, which toggles <code>spinning</code>.
     </p>
     <Picking />
   </div>
@@ -20,9 +20,8 @@ export default () => (
 
 export class Crate extends Mesh {
   frame = get(Frame);
-  pointer = get(Pointer);
+  focused = focus();
 
-  interactive = true;
   label = '';
   color = 'white';
   spinning = false;
@@ -31,8 +30,8 @@ export class Crate extends Mesh {
   material = new MeshBasicMaterial();
 
   protected new() {
-    this.get(($) => void this.material.color.set($.pointer.hit?.is === this.is ? 'white' : $.color));
-    this.set(Pointer.click, () => void (this.spinning = !this.spinning));
+    this.get(($) => void this.material.color.set($.focused ? 'white' : $.color));
+    this.set(Focus.select, () => void (this.spinning = !this.spinning));
 
     return this.frame.each((delta) => {
       if (this.spinning) this.rotation.y += delta * 2;

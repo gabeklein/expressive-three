@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { fit } from './camera';
 import { Frame, loop } from './frame';
 import { Object3D, objectOf, Scene, verify } from './object';
-import { cast, Pointer, track } from './pointer';
+import { cast, Focus, track } from './focus';
 
 declare namespace Viewport {
   /** A canvas, or a WebGL context a host made. */
@@ -28,8 +28,8 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
   /** Clock for everything under this viewport - nodes read it with `get(Frame)`. */
   frame = new Frame();
 
-  /** The pointer over the attached canvas - nodes read it with `get(Pointer)`. */
-  pointer = new Pointer();
+  /** Aim of the pointer over the attached canvas - nodes read it with `get(Focus)`. */
+  focus = new Focus();
 
   declare scene: Scene;
   declare camera: Object3D<THREE.Camera>;
@@ -75,14 +75,15 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
     this._renderer = renderer;
 
-    const untrack = 'getContext' in surface ? track(this.pointer, surface) : undefined;
+    const aim = () => cast(this.focus, objectOf(this.scene), objectOf(this.camera) as THREE.Camera);
+    const untrack = 'getContext' in surface ? track(this.focus, surface, aim) : undefined;
 
     const stop = loop(
       {
         tick: (delta) => {
           this.frame.tick(delta);
           this.draw();
-          cast(this.pointer, objectOf(this.scene), objectOf(this.camera) as THREE.Camera);
+          aim();
         }
       },
       (step) => this.schedule(step)
