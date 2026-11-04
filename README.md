@@ -76,7 +76,7 @@ arena.spinner.boost(1);
   canvas or WebGL context, sizing renderer and camera to it - including a camera
   assigned later. `draw()` is protected - override to wrap it; `_renderer` is a
   `WebGLRenderer` unless `createRenderer()` returns another (`Viewport<R>`).
-- **Focus** - `focus = focusable()` makes a node focusable: hits on it or anything
+- **Focus** - `focus = pointer()` makes a node focusable: hits on it or anything
   drawn under it resolve to it, and the field reads true while any source aims
   there. A Viewport's `focus` is one source - the pointer over its canvas, for
   mouse, touch and pen - read with `get(Focus)`: `hit` is the focusable node it

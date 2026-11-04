@@ -25,11 +25,11 @@ describe('public surface', () => {
       'Viewport',
       'def',
       'default',
-      'focusable',
       'get',
       'has',
       'loop',
       'map',
+      'pointer',
       'ref',
       'set'
     ]);

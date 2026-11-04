@@ -4,12 +4,12 @@ import * as THREE from 'three';
 
 import { PerspectiveCamera } from './camera';
 import { Group, Mesh, type Object3D, objectOf, Scene } from './object';
-import { cast, Focus, focusable, track } from './focus';
+import { cast, Focus, pointer, track } from './focus';
 import { Viewport } from './viewport';
 import { flushMicrotasks } from '../test.setup';
 
 class Box extends Mesh {
-  focus = focusable();
+  focus = pointer();
   geometry = new THREE.BoxGeometry(2, 2, 2);
 }
 
@@ -95,7 +95,7 @@ describe('Focus', () => {
     expect(game.focus.hit).toBe(box);
   });
 
-  it('will pass through nodes which are not focusable, and skip hidden ones', () => {
+  it('will pass through nodes which are not pointer, and skip hidden ones', () => {
     class Wall extends Mesh {
       geometry = new THREE.BoxGeometry(4, 4, 0.1);
       position = new THREE.Vector3(0, 0, 2);
@@ -127,7 +127,7 @@ describe('Focus', () => {
     }
 
     class Crate extends Group {
-      focus = focusable();
+      focus = pointer();
       plain = new Plain();
       box = new Box({ position: new THREE.Vector3(4, 0, 0) });
     }
@@ -254,7 +254,7 @@ describe('Focus', () => {
   });
 });
 
-describe('focusable', () => {
+describe('pointer', () => {
   it('will read true while a source aims at the node, and dispatch when it flips', async () => {
     const game = Test.new();
     const { send } = attached(game);
@@ -314,7 +314,7 @@ describe('focusable', () => {
 
   it('will update every focus field on a node', async () => {
     class Twin extends Box {
-      also = focusable();
+      also = pointer();
     }
 
     class Pair extends Scene {
@@ -337,9 +337,9 @@ describe('focusable', () => {
 
   it('will throw on a model which is not a node', () => {
     class Plain extends Model {
-      focus = focusable();
+      focus = pointer();
     }
 
-    expect(() => Plain.new()).toThrow(/focusable\(\) applies to scene nodes/);
+    expect(() => Plain.new()).toThrow(/pointer\(\) applies to scene nodes/);
   });
 });
