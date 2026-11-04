@@ -18,7 +18,7 @@ const RAY = new THREE.Raycaster();
 
 /**
  * One source of aim over a viewport - read it with `get(Focus)`. `hit` is the nearest node with a
- * `focus()` field along its ray, checked every frame, so a node moving under a still pointer is found.
+ * `focusable()` field along its ray, checked every frame, so a node moving under a still pointer is found.
  */
 class Focus extends Model {
   /** Dispatched on a node pressed and released under focus, then on each node it draws under. */
@@ -45,10 +45,10 @@ Focus.on({
   }
 });
 
-/** Make a node focusable - the field reads true while any `Focus` aims at it or something drawn under it. */
-function focus() {
+/** Make a node focusable - its `focus` field reads true while any `Focus` aims at it or something drawn under it. */
+function focusable() {
   return def<boolean>((key, self) => {
-    if (!(self instanceof Object3D)) throw new Error(`${self}.${key} - focus() applies to scene nodes.`);
+    if (!(self instanceof Object3D)) throw new Error(`${self}.${key} - focusable() applies to scene nodes.`);
 
     const keys = KEYS.get(self);
 
@@ -186,4 +186,4 @@ function focused(node: Object3D) {
   for (const key of KEYS.get(node)!) node.set(key);
 }
 
-export { cast, Focus, focus, track };
+export { cast, Focus, focusable, track };

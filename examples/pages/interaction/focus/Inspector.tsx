@@ -15,8 +15,8 @@ export class Inspector extends Component {
         <dl className="inspector">
           <dt>hit</dt>
           <dd className="hit">{crate.label}</dd>
-          <dt>focused</dt>
-          <dd className="focused">{crate.focused ? 'yes' : 'no'}</dd>
+          <dt>focus</dt>
+          <dd className="focus">{crate.focus ? 'yes' : 'no'}</dd>
           <dt>spinning</dt>
           <dd className="spinning">{crate.spinning ? 'yes' : 'no'}</dd>
           <dt>point</dt>

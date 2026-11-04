@@ -4,12 +4,12 @@ import * as THREE from 'three';
 
 import { PerspectiveCamera } from './camera';
 import { Group, Mesh, type Object3D, objectOf, Scene } from './object';
-import { cast, Focus, focus, track } from './focus';
+import { cast, Focus, focusable, track } from './focus';
 import { Viewport } from './viewport';
 import { flushMicrotasks } from '../test.setup';
 
 class Box extends Mesh {
-  focused = focus();
+  focus = focusable();
   geometry = new THREE.BoxGeometry(2, 2, 2);
 }
 
@@ -127,7 +127,7 @@ describe('Focus', () => {
     }
 
     class Crate extends Group {
-      focused = focus();
+      focus = focusable();
       plain = new Plain();
       box = new Box({ position: new THREE.Vector3(4, 0, 0) });
     }
@@ -254,27 +254,27 @@ describe('Focus', () => {
   });
 });
 
-describe('focus', () => {
+describe('focusable', () => {
   it('will read true while a source aims at the node, and dispatch when it flips', async () => {
     const game = Test.new();
     const { send } = attached(game);
     const { box } = game.scene as Stage;
 
-    expect(box.focused).toBe(false);
+    expect(box.focus).toBe(false);
 
     send('pointermove');
     game.step();
 
-    expect(box.focused).toBe(true);
-    await expect(box).toHaveUpdated('focused');
+    expect(box.focus).toBe(true);
+    await expect(box).toHaveUpdated('focus');
 
     game.step();
     await expect(box).not.toHaveUpdated();
 
     send('pointerleave');
 
-    expect(box.focused).toBe(false);
-    await expect(box).toHaveUpdated('focused');
+    expect(box.focus).toBe(false);
+    await expect(box).toHaveUpdated('focus');
   });
 
   it('will stay focused while another source aims at the node', () => {
@@ -292,11 +292,11 @@ describe('focus', () => {
     send('pointerleave');
 
     expect(other.hit).toBe(box);
-    expect(box.focused).toBe(true);
+    expect(box.focus).toBe(true);
 
     element.dispatchEvent(new Event('pointerleave'));
 
-    expect(box.focused).toBe(false);
+    expect(box.focus).toBe(false);
   });
 
   it('will let go of a node destroyed while focused', () => {
@@ -314,7 +314,7 @@ describe('focus', () => {
 
   it('will update every focus field on a node', async () => {
     class Twin extends Box {
-      also = focus();
+      also = focusable();
     }
 
     class Pair extends Scene {
@@ -332,14 +332,14 @@ describe('focus', () => {
     game.step();
 
     expect(game.scene.twin.also).toBe(true);
-    await expect(game.scene.twin).toHaveUpdated('focused', 'also');
+    await expect(game.scene.twin).toHaveUpdated('focus', 'also');
   });
 
   it('will throw on a model which is not a node', () => {
     class Plain extends Model {
-      focused = focus();
+      focus = focusable();
     }
 
-    expect(() => Plain.new()).toThrow(/focus\(\) applies to scene nodes/);
+    expect(() => Plain.new()).toThrow(/focusable\(\) applies to scene nodes/);
   });
 });

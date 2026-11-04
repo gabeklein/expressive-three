@@ -1,5 +1,5 @@
 import { Component } from '@expressive/mvc';
-import { Focus, focus, Frame, get, Mesh, PerspectiveCamera, Scene, Viewport } from '@expressive/three';
+import { Focus, focusable, Frame, get, Mesh, PerspectiveCamera, Scene, Viewport } from '@expressive/three';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 
 import { Inspector } from './Inspector';
@@ -8,7 +8,7 @@ export default () => (
   <div className="container">
     <h1>Focus</h1>
     <p>
-      A <code>focused = focus()</code> field makes a crate focusable and reads true while the pointer -
+      A <code>focus = focusable()</code> field makes a crate focusable and reads true while the pointer -
       mouse, touch or pen - aims at it; the crate's effect lights it up from that. The viewport's{' '}
       <code>Focus</code> holds what it aims at as <code>hit</code>, and the inspector below the canvas
       reads it through context to show that crate's own fields. Pressing and releasing over a crate
@@ -20,7 +20,7 @@ export default () => (
 
 export class Crate extends Mesh {
   frame = get(Frame);
-  focused = focus();
+  focus = focusable();
 
   label = '';
   color = 'white';
@@ -30,7 +30,7 @@ export class Crate extends Mesh {
   material = new MeshBasicMaterial();
 
   protected new() {
-    this.get(($) => void this.material.color.set($.focused ? 'white' : $.color));
+    this.get(($) => void this.material.color.set($.focus ? 'white' : $.color));
     this.set(Focus.select, () => void (this.spinning = !this.spinning));
 
     return this.frame.each((delta) => {

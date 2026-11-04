@@ -25,7 +25,7 @@ describe('public surface', () => {
       'Viewport',
       'def',
       'default',
-      'focus',
+      'focusable',
       'get',
       'has',
       'loop',

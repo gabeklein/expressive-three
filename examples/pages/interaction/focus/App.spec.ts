@@ -15,7 +15,7 @@ test('will light the crate in focus, inspect it, and spin it on select', async (
 
   await stage.hover(at(0.5));
   await expect(hit).toHaveText('green');
-  await expect(page.locator('.focused')).toHaveText('yes');
+  await expect(page.locator('.focus')).toHaveText('yes');
   await drawn(stage, white);
 
   await stage.click(at(0.5));
