@@ -65,13 +65,16 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
     const shade = () => {
       if (renderer.shadowMap) {
         renderer.shadowMap.enabled = this.shadows;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
       }
     };
 
     const refit = this.set((key) => {
       if (key == 'camera') fit(this.camera, ...size);
-      else if (key == 'shadows') shade();
+      else if (key == 'shadows') {
+        shade();
+        recompile(objectOf(this.scene));
+      }
     });
 
     shade();
@@ -134,6 +137,14 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
   protected schedule(step: (time: number) => void) {
     requestAnimationFrame(step);
   }
+}
+
+function recompile(scene: THREE.Object3D) {
+  scene.traverse((object) => {
+    const { material } = object as THREE.Mesh;
+
+    for (const each of Array.isArray(material) ? material : [material]) if (each) each.needsUpdate = true;
+  });
 }
 
 Viewport.on({
