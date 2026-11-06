@@ -29,7 +29,8 @@ describe('public surface', () => {
       'loop',
       'map',
       'ref',
-      'set'
+      'set',
+      'texture'
     ]);
   });
 });
