@@ -36,7 +36,13 @@ function renderer() {
 }
 
 function canvas(width = 800, height = 400) {
-  return { getContext() {}, clientWidth: width, clientHeight: height } as unknown as HTMLCanvasElement;
+  return Object.assign(new EventTarget(), {
+    getContext() {},
+    clientWidth: width,
+    clientHeight: height,
+    getBoundingClientRect: () => ({ left: 0, top: 0, width, height }),
+    setPointerCapture() {}
+  }) as unknown as HTMLCanvasElement;
 }
 
 class Test extends Viewport<Viewport.Renderer> {

@@ -1,1 +1,1 @@
-export default ['essentials', 'scene', 'look', 'resources'];
+export default ['essentials', 'scene', 'look', 'resources', 'interaction'];

@@ -98,6 +98,10 @@ class Mesh extends node(THREE.Mesh, ['geometry', 'material']) {}
 
 type Members = Record<string, unknown>;
 
+function nodeOf(object: THREE.Object3D) {
+  return NODE.get(object);
+}
+
 function objectOf(self: object) {
   return OBJECT.get(self)!;
 }
@@ -325,4 +329,4 @@ Object3D.on({
   ready: mount
 });
 
-export { Group, Mesh, node, Object3D, objectOf, Scene, verify };
+export { Group, Mesh, node, nodeOf, Object3D, objectOf, Scene, verify };

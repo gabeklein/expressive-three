@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { fit } from './camera';
 import { Frame, loop } from './frame';
 import { Object3D, objectOf, Scene, verify } from './object';
+import { cast, Pointer, track } from './pointer';
 
 declare namespace Viewport {
   /** A canvas, or a WebGL context a host made. */
@@ -26,6 +27,9 @@ const DETACH = new WeakMap<object, () => void>();
 class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model {
   /** Clock for everything under this viewport - nodes read it with `get(Frame)`. */
   frame = new Frame();
+
+  /** The pointer over the attached canvas - nodes read it with `get(Pointer)`. */
+  pointer = new Pointer();
 
   declare scene: Scene;
   declare camera: Object3D<THREE.Camera>;
@@ -71,11 +75,16 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
     this._renderer = renderer;
 
+    const aim = (delta?: number) =>
+      cast(this.pointer, objectOf(this.scene), objectOf(this.camera) as THREE.Camera, delta);
+    const untrack = 'getContext' in surface ? track(this.pointer, surface, aim) : undefined;
+
     const stop = loop(
       {
         tick: (delta) => {
           this.frame.tick(delta);
           this.draw();
+          aim(delta);
         }
       },
       (step) => this.schedule(step)
@@ -88,6 +97,7 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
       refit();
       stop();
       observer?.disconnect();
+      untrack?.();
       renderer.dispose();
       this._renderer = undefined;
     };
