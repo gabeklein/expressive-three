@@ -14,6 +14,7 @@ declare namespace Viewport {
     setPixelRatio(ratio: number): void;
     render(scene: THREE.Object3D, camera: THREE.Camera): void;
     dispose(): void;
+    shadowMap?: { enabled: boolean; type: THREE.ShadowMapType };
   }
 }
 
@@ -29,6 +30,9 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
   declare scene: Scene;
   declare camera: Object3D<THREE.Camera>;
+
+  /** Whether lights and objects marked `castShadow` throw soft shadows. */
+  shadows = false;
 
   /** For a host's `<canvas ref>` - attached while the element is mounted. */
   canvas = ref<HTMLCanvasElement>((element) => this.attach(element));
@@ -54,9 +58,19 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
       fit(this.camera, width, height);
     };
 
+    const shade = () => {
+      if (renderer.shadowMap) {
+        renderer.shadowMap.enabled = this.shadows;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      }
+    };
+
     const refit = this.set((key) => {
       if (key == 'camera') fit(this.camera, ...size);
+      else if (key == 'shadows') shade();
     });
+
+    shade();
 
     let observer: ResizeObserver | undefined;
 

@@ -69,3 +69,25 @@ describe('Light', () => {
     expect((objectOf(lit.bulb) as THREE.PointLight).distance).toBe(5);
   });
 });
+
+describe('shadow', () => {
+  it('will read a live shadow to configure in place', () => {
+    class Moon extends DirectionalLight {
+      castShadow = true;
+    }
+
+    const moon = Moon.new();
+    const object = objectOf(moon) as THREE.DirectionalLight;
+
+    expect(moon.shadow).toBe(object.shadow);
+    expect(object.castShadow).toBe(true);
+
+    moon.shadow.mapSize.set(1024, 1024);
+    moon.shadow.camera.left = -20;
+    moon.shadow.camera.updateProjectionMatrix();
+
+    expect(object.shadow.mapSize.x).toBe(1024);
+    expect(PointLight.new().shadow.camera).toBeInstanceOf(THREE.PerspectiveCamera);
+    expect(SpotLight.new().shadow.camera).toBeInstanceOf(THREE.PerspectiveCamera);
+  });
+});

@@ -252,6 +252,24 @@ describe('Viewport', () => {
     expect(dispose).toHaveBeenCalled();
   });
 
+  it('will enable soft shadows on a renderer which has them, following shadows', async () => {
+    class Shaded extends Test {
+      shadows = true;
+      _fake = { ...renderer(), shadowMap: { enabled: false, type: THREE.BasicShadowMap as THREE.ShadowMapType } };
+    }
+
+    const game = Shaded.new();
+
+    game.attach(canvas());
+
+    expect(game._fake.shadowMap).toEqual({ enabled: true, type: THREE.PCFSoftShadowMap });
+
+    game.shadows = false;
+    await expect(game).toHaveUpdated('shadows');
+
+    expect(game._fake.shadowMap.enabled).toBe(false);
+  });
+
   it('will throw without a scene or camera', () => {
     class Empty extends Viewport {}
 
