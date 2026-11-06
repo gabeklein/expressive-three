@@ -67,7 +67,7 @@ export class Crate extends Mesh {
     this.get(($) => {
       const { focus, game: { moving } } = $;
 
-      if (focus && moving) return focus.drag((move) => this.follow(move));
+      if (focus && moving) return focus.drag(this.follow);
     });
 
     return this.frame.each((delta) => {
