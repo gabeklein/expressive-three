@@ -84,8 +84,9 @@ arena.spinner.boost(1);
   function run when the gesture ends (release, drop); `drag(move)` gets a live
   `move.point`/`move.delta` on a plane facing the camera, read it in a frame
   handler. While aimed at, `focus.select/hold/drag(fn)` add listeners for that
-  stretch of aim - a mode or tool deciding what a gesture does - each returning a
-  function to stop, all dropped when aim leaves. A Viewport's `pointer` is one source - mouse, touch or pen over its
+  stretch of aim, each returning a function to stop, all dropped when aim leaves -
+  return one from an effect to make a gesture conditional on the node's state or a
+  mode it reads: `if (focus && moving) return focus.drag(…)`. A Viewport's `pointer` is one source - mouse, touch or pen over its
   canvas - read with `get(Pointer)`: `hit`, `point` and `pressed` are read-only
   state.
 - **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`

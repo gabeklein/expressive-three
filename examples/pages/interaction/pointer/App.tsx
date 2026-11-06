@@ -14,9 +14,10 @@ export default () => (
       <code>hold</code> charges the crate until its returned function runs on release.
     </p>
     <p>
-      Dragging belongs to a mode, not the crate. In move mode the game's effect adds a{' '}
-      <code>drag</code> listener to whatever crate the pointer is on, through <code>focus.drag</code> -
-      dropped when the pointer moves off or the mode ends. Without it, a dragged press still selects.
+      Dragging depends on a mode the game holds. Each crate reads it with <code>get(Game)</code>, and
+      while it is aimed at in move mode its effect adds a <code>drag</code> listener through{' '}
+      <code>focus.drag</code> - returned from the effect, so it goes when either changes. Without it, a
+      dragged press still selects.
     </p>
     <p>
       The viewport's <code>Pointer</code> holds what it aims at as <code>hit</code>. The inspector below
@@ -28,6 +29,7 @@ export default () => (
 
 export class Crate extends Mesh {
   frame = get(Frame);
+  game = get(Game);
 
   label = '';
   color = 'white';
@@ -56,7 +58,17 @@ export class Crate extends Mesh {
   }
 
   protected new() {
-    this.get(($) => void this.material.color.set($.charging ? 'gold' : $.focus ? 'white' : $.color));
+    this.get(($) => {
+      const { charging, focus, color } = $;
+
+      this.material.color.set(charging ? 'gold' : focus ? 'white' : color);
+    });
+
+    this.get(($) => {
+      const { focus, game: { moving } } = $;
+
+      if (focus && moving) return focus.drag((move) => this.follow(move));
+    });
 
     return this.frame.each((delta) => {
       if (this.spinning) this.rotation.y += delta * 2;
@@ -78,14 +90,6 @@ class Game extends Viewport {
   scene = new Yard();
   camera = new Eye();
   moving = false;
-
-  protected new() {
-    this.get(($) => {
-      const crate = $.moving ? ($.pointer.hit as Crate | undefined)?.is : undefined;
-
-      return crate?.focus?.drag((move) => crate.follow(move));
-    });
-  }
 }
 
 class Picking extends Component {
