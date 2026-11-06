@@ -111,7 +111,7 @@ Pointer.on({
  * or something drawn under it, else `undefined`. A function handles select; an object, any gesture.
  */
 function pointer(handlers?: (() => void) | Pointer.Handlers) {
-  return def<Pointer.Focus>((key, self) => {
+  return def<Pointer.Focus | undefined>((key, self) => {
     if (!(self instanceof Object3D)) throw new Error(`${self}.${key} - pointer() applies to scene nodes.`);
 
     let target = TARGET.get(self);
@@ -124,11 +124,11 @@ function pointer(handlers?: (() => void) | Pointer.Handlers) {
     if (handlers) target.handlers.push(typeof handlers == 'function' ? { select: handlers } : handlers);
 
     return {
-      get: () => target.focus as Pointer.Focus,
+      get: () => target.focus,
       set: false,
       destroy: () => void (target.sources.length = 0)
     };
-  }) as Pointer.Focus | undefined;
+  });
 }
 
 /** Follow pointer events on `canvas` - mouse, touch and pen alike. `cast` aims now. Returns a function to stop. */

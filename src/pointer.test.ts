@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { Model } from '@expressive/mvc';
 import * as THREE from 'three';
 
@@ -351,6 +351,10 @@ describe('pointer', () => {
     send('pointerup', 0.6);
 
     expect(calls).toEqual(['select', 'hold', 'drag']);
+  });
+
+  it('will type the field as focus or undefined', () => {
+    expectTypeOf(new Box().focus).toEqualTypeOf<Pointer.Focus | undefined>();
   });
 
   it('will throw on a model which is not a node', () => {
