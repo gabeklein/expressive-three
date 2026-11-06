@@ -28,6 +28,7 @@ describe('public surface', () => {
       'has',
       'loop',
       'map',
+      'orbit',
       'ref',
       'set',
       'texture'

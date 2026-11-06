@@ -3,6 +3,7 @@ export { Asset } from './asset';
 export { OrthographicCamera, PerspectiveCamera } from './camera';
 export { AmbientLight, DirectionalLight, HemisphereLight, Light, PointLight, SpotLight } from './light';
 export { Group, Mesh, Object3D, Scene } from './object';
+export { orbit } from './orbit';
 export { texture } from './texture';
 export { Viewport } from './viewport';
 

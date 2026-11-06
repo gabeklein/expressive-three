@@ -19,6 +19,7 @@ declare namespace Viewport {
 }
 
 const DETACH = new WeakMap<object, () => void>();
+const SURFACE = new WeakMap<object, Viewport.Surface | undefined>();
 
 /**
  * The host-facing root - draws `scene` through `camera` every frame once given a surface.
@@ -33,6 +34,9 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
   /** Whether lights and objects marked `castShadow` throw soft shadows. */
   shadows = false;
+
+  /** What is drawn into while attached. */
+  declare readonly surface: Viewport.Surface | undefined;
 
   /** For a host's `<canvas ref>` - attached while the element is mounted. */
   canvas = ref<HTMLCanvasElement>((element) => this.attach(element));
@@ -104,9 +108,13 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
       observer?.disconnect();
       renderer.dispose();
       this._renderer = undefined;
+      SURFACE.delete(this);
+      this.set('surface');
     };
 
     DETACH.set(this, detach);
+    SURFACE.set(this, surface);
+    this.set('surface');
 
     return detach;
   }
@@ -130,6 +138,8 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
 Viewport.on({
   setup(self) {
+    (self as Model).set('surface', { get: () => SURFACE.get(self), set: false });
+
     return () => DETACH.get(self)?.();
   }
 });
