@@ -252,6 +252,54 @@ describe('Viewport', () => {
     expect(dispose).toHaveBeenCalled();
   });
 
+  it('will enable soft shadows on a renderer which has them, following shadows', async () => {
+    class Shaded extends Test {
+      shadows = true;
+      _fake = { ...renderer(), shadowMap: { enabled: false, type: THREE.BasicShadowMap as THREE.ShadowMapType } };
+    }
+
+    const game = Shaded.new();
+
+    game.attach(canvas());
+
+    expect(game._fake.shadowMap).toEqual({ enabled: true, type: THREE.PCFShadowMap });
+
+    const box = new Mesh({ material: [new THREE.MeshStandardMaterial(), new THREE.MeshBasicMaterial()] });
+    const ball = new Mesh({ material: new THREE.MeshStandardMaterial() });
+
+    game.scene = new (class extends Scene {
+      box = box;
+      ball = ball;
+    })();
+    await expect(game).toHaveUpdated('scene');
+
+    const versions = () => [...(box.material as THREE.Material[]), ball.material].map((m) => m.version);
+    const before = versions();
+
+    game.shadows = false;
+    await expect(game).toHaveUpdated('shadows');
+
+    expect(game._fake.shadowMap.enabled).toBe(false);
+    expect(versions()).toEqual(before.map((v) => v + 1));
+  });
+
+  it('will expose the surface while attached', async () => {
+    const game = Test.new();
+    const element = canvas();
+
+    expect(game.surface).toBeUndefined();
+
+    const detach = game.attach(element);
+
+    expect(game.surface).toBe(element);
+    await expect(game).toHaveUpdated('surface');
+
+    detach();
+
+    expect(game.surface).toBeUndefined();
+    await expect(game).toHaveUpdated('surface');
+  });
+
   it('will throw without a scene or camera', () => {
     class Empty extends Viewport {}
 

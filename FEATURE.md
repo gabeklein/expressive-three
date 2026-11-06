@@ -30,6 +30,9 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - [x] Viewport root - renderer, resize, loop, `draw()`.
 - [x] Camera and light nodes - `PerspectiveCamera`, `OrthographicCamera` (a Viewport keeps its vertical extent and fits the width); `Light` (`color`, `intensity`) with `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`.
 - [x] Asset node - `Asset` loads a glTF `url` once per URL and clones its scene under the node. Loading holds `ready` (a setup handler's promise), so an owner is ready once every asset under it has loaded. `url` reassigns to swap content - the old content stays until the new lands, and only the newest assignment loads; unset shows none. `loaded` is read-only. `clip` plays a named animation on the nearest `Frame` and unsetting it fades to the rest pose; `part(name)` reaches a loaded object for per-frame values. A failed first load reports to `catch` and destroys the node; a failed swap reports and keeps the old content. A failed URL leaves the cache, so the next instance retries. Placement runs at `ready`, so a group owning an asset is placed once the load lands - subtrees appear complete. Shared geometry belongs to the cache and is not disposed per instance.
+- [x] Shadows - `castShadow` and `receiveShadow` on every node; `shadow` live on lights which throw them; `shadows` on the Viewport enables PCF shadow maps (three r185 deprecates the soft variant) and recompiles the scene's materials on a change, which three does not do itself.
+- [x] Textures - `texture(url, settings?)` loads once per URL and shares; an `.hdr` loads through `HDRLoader` mapped equirectangular, with an empty image until it lands so three does not bake its environment from the 1×1 placeholder (it does once, and keeps it). Textures are not counted for disposal - cached for the page.
+- [x] Orbit controls - `orbit(settings?)` on a Viewport installs three's `OrbitControls` from an effect on `surface` (now read-only state) and `camera`, updated each frame, disposed on detach.
 - [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
 - [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
 
@@ -44,6 +47,10 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - A subclass computed on a member throws today; it could be synced through an effect instead.
 
 ## Bullpen
+
+- A native camera controller - `OrbitControls` works, but fights nothing yet; one mutating `camera.position` per frame from a reactive `target` would fit the conventions better.
+- Texture disposal counting and decoders (DRACO, KTX2, Meshopt) for `Asset`; `.exr`.
+- Shadow map type and `shadow.radius` as Viewport settings.
 
 - Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
 - An asset's `Frame` is found once at `ready`; a node moved under another viewport keeps the first clock.

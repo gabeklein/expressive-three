@@ -22,6 +22,10 @@ abstract class Object3D<T extends THREE.Object3D = THREE.Object3D> extends Model
 
   declare visible: boolean;
 
+  /** Whether this object throws a shadow, and whether shadows land on it - with `shadows` on the Viewport. */
+  declare castShadow: boolean;
+  declare receiveShadow: boolean;
+
   /** Live vector - mutate in place to animate without dispatch; assign one to place and dispatch. */
   declare position: THREE.Vector3;
   declare rotation: THREE.Euler;
@@ -320,7 +324,7 @@ Object3D.on({
   setup(self) {
     placement(self);
 
-    return contract(['visible', 'position', 'rotation', 'scale'])(self);
+    return contract(['visible', 'castShadow', 'receiveShadow', 'position', 'rotation', 'scale'])(self);
   },
   ready: mount
 });

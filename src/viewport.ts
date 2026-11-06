@@ -14,10 +14,12 @@ declare namespace Viewport {
     setPixelRatio(ratio: number): void;
     render(scene: THREE.Object3D, camera: THREE.Camera): void;
     dispose(): void;
+    shadowMap?: { enabled: boolean; type: THREE.ShadowMapType };
   }
 }
 
 const DETACH = new WeakMap<object, () => void>();
+const SURFACE = new WeakMap<object, Viewport.Surface | undefined>();
 
 /**
  * The host-facing root - draws `scene` through `camera` every frame once given a surface.
@@ -29,6 +31,12 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
 
   declare scene: Scene;
   declare camera: Object3D<THREE.Camera>;
+
+  /** Whether lights and objects marked `castShadow` throw soft shadows. */
+  shadows = false;
+
+  /** What is drawn into while attached. */
+  declare readonly surface: Viewport.Surface | undefined;
 
   /** For a host's `<canvas ref>` - attached while the element is mounted. */
   canvas = ref<HTMLCanvasElement>((element) => this.attach(element));
@@ -54,9 +62,22 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
       fit(this.camera, width, height);
     };
 
+    const shade = () => {
+      if (renderer.shadowMap) {
+        renderer.shadowMap.enabled = this.shadows;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+      }
+    };
+
     const refit = this.set((key) => {
       if (key == 'camera') fit(this.camera, ...size);
+      else if (key == 'shadows') {
+        shade();
+        recompile(objectOf(this.scene));
+      }
     });
+
+    shade();
 
     let observer: ResizeObserver | undefined;
 
@@ -90,9 +111,13 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
       observer?.disconnect();
       renderer.dispose();
       this._renderer = undefined;
+      SURFACE.delete(this);
+      this.set('surface');
     };
 
     DETACH.set(this, detach);
+    SURFACE.set(this, surface);
+    this.set('surface');
 
     return detach;
   }
@@ -114,8 +139,18 @@ class Viewport<R extends Viewport.Renderer = THREE.WebGLRenderer> extends Model 
   }
 }
 
+function recompile(scene: THREE.Object3D) {
+  scene.traverse((object) => {
+    const { material } = object as THREE.Mesh;
+
+    for (const each of Array.isArray(material) ? material : [material]) if (each) each.needsUpdate = true;
+  });
+}
+
 Viewport.on({
   setup(self) {
+    (self as Model).set('surface', { get: () => SURFACE.get(self), set: false });
+
     return () => DETACH.get(self)?.();
   }
 });
