@@ -58,5 +58,6 @@ describe('texture', () => {
     expect(requested).toEqual(['hdr:/sky.HDR']);
     expect(sky).toBeInstanceOf(THREE.DataTexture);
     expect(sky.mapping).toBe(THREE.EquirectangularReflectionMapping);
+    expect(sky.image).toEqual({ data: null, width: 0, height: 0 });
   });
 });

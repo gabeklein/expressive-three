@@ -13,7 +13,11 @@ function texture(url: string, settings?: Partial<THREE.Texture>): THREE.Texture 
 
   if (!loaded) {
     loaded = /\.hdr$/i.test(url)
-      ? Object.assign(new HDRLoader().load(url), { mapping: THREE.EquirectangularReflectionMapping })
+      ? Object.assign(new HDRLoader().load(url), {
+          mapping: THREE.EquirectangularReflectionMapping,
+          // three bakes an environment on first use and keeps it - an empty image defers that until the file lands
+          image: { data: null, width: 0, height: 0 }
+        })
       : new THREE.TextureLoader().load(url);
 
     CACHE.set(url, loaded);
