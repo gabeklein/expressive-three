@@ -18,11 +18,11 @@ vi.mock('three', async (actual) => {
   return { ...three, TextureLoader };
 });
 
-vi.mock('three/examples/jsm/loaders/RGBELoader.js', async () => {
+vi.mock('three/examples/jsm/loaders/HDRLoader.js', async () => {
   const three = await import('three');
 
   return {
-    RGBELoader: class {
+    HDRLoader: class {
       load(url: string) {
         requested.push(`hdr:${url}`);
         return new three.DataTexture();

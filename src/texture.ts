@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 const CACHE = new Map<string, THREE.Texture>();
 
@@ -13,7 +13,7 @@ function texture(url: string, settings?: Partial<THREE.Texture>): THREE.Texture 
 
   if (!loaded) {
     loaded = /\.hdr$/i.test(url)
-      ? Object.assign(new RGBELoader().load(url), { mapping: THREE.EquirectangularReflectionMapping })
+      ? Object.assign(new HDRLoader().load(url), { mapping: THREE.EquirectangularReflectionMapping })
       : new THREE.TextureLoader().load(url);
 
     CACHE.set(url, loaded);
