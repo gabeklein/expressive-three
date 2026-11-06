@@ -76,6 +76,17 @@ arena.spinner.boost(1);
   canvas or WebGL context, sizing renderer and camera to it - including a camera
   assigned later. `draw()` is protected - override to wrap it; `_renderer` is a
   `WebGLRenderer` unless `createRenderer()` returns another (`Viewport<R>`).
+- **Shadows** - `shadows = true` on the Viewport turns on shadow maps. A node
+  marks itself `castShadow` or `receiveShadow`; a light that throws shadows
+  exposes `shadow` live - size its map and camera bounds in place, then
+  `shadow.camera.updateProjectionMatrix()`.
+- **`texture(url, settings?)`** - a texture loaded once per URL and shared, so
+  settings are shared too; three fills it in when the file lands. A color map
+  needs `colorSpace: SRGBColorSpace`. An `.hdr` maps equirectangular, so
+  `environment = texture('/sky.hdr')` lights a scene and `background` shows it.
+- **`controls = orbit(settings?)`** - three's `OrbitControls` on a Viewport's
+  camera while attached to a canvas, following a camera switch; the field reads
+  the controls, or `undefined` while detached. They move the camera in place.
 - **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`
   drives one from `requestAnimationFrame`, capping a step at 0.1s.
 
