@@ -30,7 +30,7 @@ declare namespace orbit {
  * controls, or `undefined` while detached. They move the camera in place, like a frame handler.
  */
 function orbit(settings?: orbit.Settings) {
-  return def<OrbitControls>((key, self) => {
+  return def<OrbitControls | undefined>((key, self) => {
     if (!(self instanceof Viewport)) throw new Error(`${self}.${key} - orbit() applies to a Viewport.`);
 
     let controls: OrbitControls | undefined;
@@ -54,11 +54,11 @@ function orbit(settings?: orbit.Settings) {
     });
 
     return {
-      get: () => controls as OrbitControls,
+      get: () => controls,
       set: false,
       destroy: () => void stop()
     };
-  }) as OrbitControls | undefined;
+  });
 }
 
 export { orbit };
