@@ -34,7 +34,7 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - [x] Textures - `texture(url, settings?)` loads once per URL and shares; an `.hdr` loads through `HDRLoader` mapped equirectangular, with an empty image until it lands so three does not bake its environment from the 1×1 placeholder (it does once, and keeps it). Textures are not counted for disposal - cached for the page.
 - [x] Orbit controls - `orbit(settings?)` on a Viewport installs three's `OrbitControls` from an effect on `surface` (now read-only state) and `camera`, updated each frame, disposed on detach.
 - [x] Real-browser verification - `bun .github/scripts/three-probe.ts` draws in Chrome and reads back pixels.
-- [ ] Pointer events - pointer state (`hovered`, `pressed`) as reactive members and a provided `Pointer`, rather than callbacks; dragging mutates in place and assigns on drop.
+- [x] Pointer - `pointer(handlers?)` is an instruction making a node a target; its field (conventionally `focus`) reads `{ point, sources }` while any `Pointer` aims at the node or something drawn under it, else `undefined`. A fresh object dispatches when aim arrives, leaves or a source joins; `point` is live and silent, like the transform vectors. `sources` lists each aiming `Pointer`, whose own `point` is where it meets this node - enough for two-handed XR manipulation. Handlers classify gestures in one place: `select` (pressed and released on the node, before a hold and without a drag), `hold` (still past 0.5s on the frame clock) and `drag` (moved past 4px; a live `move` on a camera-facing plane through the grab point). `hold` and `drag` may return a function run when the gesture ends; per-frame work stays in `frame.each`. A function alone is `select`. The field is one object per stretch of aim, updated in place as sources come and go; its `select`, `hold` and `drag` methods add listeners for that stretch, counted in classification like declared handlers and dropped when aim leaves. Returned from an effect, one makes a gesture conditional on the node's state or a mode it reads with `get()` - a declared handler can't, since its presence alone changes classification. `get(Pointer)` is for what isn't about one node: readouts, cursors, reticles. Only the node a hit resolves to handles it - no bubbling. A `Pointer` is one source of aim with `hit`, `point` and `pressed` as read-only state; a `Viewport` owns one for its canvas - pointer events cover mouse, touch and pen, raycast every frame after drawing and immediately on press and release, so a tap needs no aim first. A WebGL context gets no source.
 
 ## Prerequisites in mvc
 
@@ -51,6 +51,10 @@ Built: `Object3D`, `Group`, `Scene`, `Mesh`; member contract for `visible`, `geo
 - A native camera controller - `OrbitControls` works, but fights nothing yet; one mutating `camera.position` per frame from a reactive `target` would fit the conventions better.
 - Texture disposal counting and decoders (DRACO, KTX2, Meshopt) for `Asset`; `.exr`.
 - Shadow map type and `shadow.radius` as Viewport settings.
+- More sources - XR gaze (camera forward) and controllers (their pose) as `Pointer` subclasses differing only in the ray they produce; a WebGL context's host (React Native) feeding positions. Needs a public seam for producing the ray.
+- A tab walk - a `Pointer` source choosing `hit` from an ordered list instead of a ray, for keyboard selection. Targets would follow unchanged.
+- Multi-touch - one `Pointer` per active pointer id, rather than one per canvas.
+- Tunable hold time and drag distance - fixed until something needs them.
 
 - Asset parts as nodes - `part(name)` returns three's object today; wrapping parts as nodes needs a node over an existing object, whose unset `parent` keeps where the loaded graph put it.
 - An asset's `Frame` is found once at `ready`; a node moved under another viewport keeps the first clock.

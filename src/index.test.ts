@@ -19,6 +19,7 @@ describe('public surface', () => {
       'OrthographicCamera',
       'PerspectiveCamera',
       'PointLight',
+      'Pointer',
       'Scene',
       'SpotLight',
       'Viewport',
@@ -29,6 +30,7 @@ describe('public surface', () => {
       'loop',
       'map',
       'orbit',
+      'pointer',
       'ref',
       'set',
       'texture'
