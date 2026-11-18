@@ -819,3 +819,22 @@ describe('Scene', () => {
     expect((objectOf(room) as THREE.Scene).environment).toBe(texture);
   });
 });
+
+describe('shadows', () => {
+  it('will route castShadow and receiveShadow to the object', async () => {
+    class Caster extends Mesh {
+      castShadow = true;
+    }
+
+    const caster = Caster.new();
+    const object = objectOf(caster);
+
+    expect(object.castShadow).toBe(true);
+    expect(caster.receiveShadow).toBe(false);
+
+    caster.receiveShadow = true;
+
+    expect(object.receiveShadow).toBe(true);
+    await expect(caster).toHaveUpdated('receiveShadow');
+  });
+});

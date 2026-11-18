@@ -29,9 +29,11 @@ describe('public surface', () => {
       'has',
       'loop',
       'map',
+      'orbit',
       'pointer',
       'ref',
-      'set'
+      'set',
+      'texture'
     ]);
   });
 });
