@@ -50,4 +50,17 @@ function loop(frame: Pick<Frame, 'tick'>, schedule: Frame.Schedule) {
   };
 }
 
-export { Frame, loop };
+/** The closest `Type` held by an owner of `self`, as a `get(Type)` field finds it, else from context. */
+function nearest<T extends Model>(self: Model, Type: Model.Extends<T>): T | undefined {
+  for (let at = self.get(Model, false); at; at = at.get(Model, false)) {
+    let found: T | undefined;
+
+    at.get(Model, (child) => void (found ||= child instanceof Type ? (child as T) : undefined), true)();
+
+    if (found) return found;
+  }
+
+  return self.get(Type as Model.Type<T>, false);
+}
+
+export { Frame, loop, nearest };
