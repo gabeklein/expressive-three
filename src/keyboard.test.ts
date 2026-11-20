@@ -19,10 +19,12 @@ afterEach(() => {
 });
 
 function send(type: 'keydown' | 'keyup', code: string, target: object | null = null) {
-  const event = Object.assign(new Event(type), { code });
+  const event = Object.assign(new Event(type, { cancelable: true }), { code });
 
   Object.defineProperty(event, 'target', { value: target });
   window.dispatchEvent(event);
+
+  return event;
 }
 
 function press(code: string) {
@@ -117,6 +119,14 @@ describe('field', () => {
 
     send('keydown', 'KeyW', { tagName: 'DIV' });
     await expect(player).toHaveUpdated('thrust');
+  });
+
+  it('will prevent the default of bound keys only', () => {
+    game(Ship);
+
+    expect(send('keydown', 'ArrowLeft').defaultPrevented).toBe(true);
+    expect(send('keydown', 'ArrowDown').defaultPrevented).toBe(false);
+    expect(send('keydown', 'ArrowLeft', { tagName: 'INPUT' }).defaultPrevented).toBe(false);
   });
 
   it('will release every key on blur', async () => {

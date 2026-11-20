@@ -118,6 +118,8 @@ function down(event: Event) {
 
   if (editable(target)) return;
 
+  for (const binding of BINDINGS) if (binding.codes.includes(code)) event.preventDefault();
+
   HELD.add(code);
   update(true);
 }
