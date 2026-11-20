@@ -100,6 +100,16 @@ arena.spinner.boost(1);
   mode it reads: `if (focus && moving) return focus.drag(…)`. A Viewport's `pointer` is one source - mouse, touch or pen over its
   canvas - read with `get(Pointer)`: `hit`, `point` and `pressed` are read-only
   state.
+- **Keyboard** - `jump = keyboard('Space', handlers?)` binds keys to a field on
+  any Model. It reads a press while any of its keys is held, else `undefined`,
+  dispatching only when the press starts and ends - read it per frame like any
+  field. Keys are physical, by short name: `'A'`-`'Z'`, `'0'`-`'9'`, `'Shift'`
+  (`'Control'`, `'Alt'`, `'Meta'`) for either side, else a `KeyboardEvent.code`
+  (`'Space'`, `'ArrowLeft'`); an array binds alternates. A function alone is
+  `tap`; `{ tap, hold }` tells them apart - `hold` fires past 0.5s on the nearest
+  `Frame` and may return a function run on release. `press.tap/hold(fn)` add
+  listeners for one press. Keys typed into inputs are ignored; bound keys don't
+  scroll the page.
 - **`Frame`** - per-frame callbacks via `each()`, mutating vectors in place. `loop()`
   drives one from `requestAnimationFrame`, capping a step at 0.1s.
 

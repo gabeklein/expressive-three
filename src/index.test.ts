@@ -27,6 +27,7 @@ describe('public surface', () => {
       'default',
       'get',
       'has',
+      'keyboard',
       'loop',
       'map',
       'orbit',

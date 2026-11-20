@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-import { Frame } from './frame';
+import { Frame, nearest } from './frame';
 import { node, objectOf } from './object';
 
 const CACHE = new Map<string, Promise<GLTF>>();
@@ -117,19 +117,6 @@ function play(self: Asset) {
   loaded.action?.fadeOut(0.2);
   next?.reset().fadeIn(0.2).play();
   loaded.action = next;
-}
-
-/** The closest `Type` held by an owner of `self`, as a `get(Type)` field finds it, else from context. */
-function nearest<T extends Model>(self: Model, Type: Model.Extends<T>): T | undefined {
-  for (let at = self.get(Model, false); at; at = at.get(Model, false)) {
-    let found: T | undefined;
-
-    at.get(Model, (child) => void (found ||= child instanceof Type ? (child as T) : undefined), true)();
-
-    if (found) return found;
-  }
-
-  return self.get(Type as Model.Type<T>, false);
 }
 
 Asset.on({
