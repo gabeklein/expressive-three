@@ -2,6 +2,7 @@ export { Frame, loop } from './frame';
 export { Asset } from './asset';
 export { OrthographicCamera, PerspectiveCamera } from './camera';
 export { AmbientLight, DirectionalLight, HemisphereLight, Light, PointLight, SpotLight } from './light';
+export { keyboard } from './keyboard';
 export { Group, Mesh, Object3D, Scene } from './object';
 export { orbit } from './orbit';
 export { Pointer, pointer } from './pointer';
